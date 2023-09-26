@@ -3,8 +3,20 @@ const mongoose = require("mongoose");
 
 // Define the Mongoose schema for the "product" entity
 const productSchema = mongoose.Schema({
+  // Array of image URLs representing the product
+  images: [
+    {
+      asset_id: { type: String, required: true },
+      public_id: { type: String, required: true },
+      url: { type: String, required: true },
+    },
+  ],
+  brand: {
+    type: String,
+    required: true,
+  },
   // Title of the product (e.g., name of the product)
-  title: {
+  name: {
     type: String,
     required: true,
   },
@@ -13,10 +25,15 @@ const productSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  discount: { type: Number, required: true },
+  quantity: { type: Number, required: true },
+  sizes: [{ type: String, required: true }],
+  tags: [{ type: String, required: true }],
   // Description of the product
   description: {
-    type: String,
-    required: true,
+    about: { type: String, required: true },
+    manufactured: { type: String, required: true },
+    packed: { type: String, required: true },
   },
   // Availability status of the product (true or false). Default is true.
   availability: {
@@ -29,11 +46,14 @@ const productSchema = mongoose.Schema({
     ref: "Category", // Reference to the "Category" model for population
     required: true,
   },
-  // Array of image URLs representing the product
-  images: {
-    type: [String],
+  categories: [{ type: String, required: true }],
+
+  sellerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category", // Reference to the "Category" model for population
     required: true,
   },
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
 });
 
 // Create a Mongoose model named "product" based on the productSchema

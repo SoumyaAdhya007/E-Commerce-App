@@ -2,6 +2,7 @@
 const express = require("express");
 const ProductModel = require("../Models/product.model");
 const CategorytModel = require("../Models/category.model");
+const cloudinary = require("cloudinary").v2;
 
 // Create an Express router instance
 const ProductRouter = express.Router();
@@ -72,47 +73,193 @@ const ProductRouter = express.Router();
 
 // ProductRouter.post("/add", ...)
 // Route to add a new product
-ProductRouter.post("/add", async (req, res) => {
+ProductRouter.post("/", async (req, res) => {
   // Extract product details from the request body
-  const { title, price, description, availability, categoryId, images } =
-    req.body;
+  // images: [],
+  // brand: "",
+  // name: "",
+  // price: 1,
+  // discount: 0,
+  // quantity: 1,
+  // sizes: [],
+  // tags: [],
+  // description: {
+  //   about: "",
+  //   manufactured: "",
+  //   packed: "",
+  // },
+  // categoryId: "",
+  // categoryies: [],
+  // sellerId: "1",
+  // images: [
+  //   {
+  //     asset_id: { type: String, required: true },
+  //     public_id: { type: String, required: true },
+  //     url: { type: String, required: true },
+  //   },
+  // ],
+  // brand: {
+  //   type: String,
+  //   required: true,
+  // },
+  // // Title of the product (e.g., name of the product)
+  // name: {
+  //   type: String,
+  //   required: true,
+  // },
+  // // Price of the product
+  // price: {
+  //   type: Number,
+  //   required: true,
+  // },
+  // discount,
+  // quantity: { type: Number, required: true },
+  // sizes: [{ type: String, required: true }],
+  // tags: [{ type: String, required: true }],
+  // // Description of the product
+  // description: {
+  //   about: { type: String, required: true },
+  //   manufactured: { type: String, required: true },
+  //   packed: { type: String, required: true },
+  // },
+  // // Availability status of the product (true or false). Default is true.
+  // availability: {
+  //   type: Boolean,
+  //   default: true,
+  // },
+  // // Category to which the product belongs (referenced by its ObjectId)
+  // categoryId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Category", // Reference to the "Category" model for population
+  //   required: true,
+  // },
+  // categoryies: [{ type: String, required: true }],
+
+  // sellerId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Category", // Reference to the "Category" model for population
+  //   required: true,
+  // },
+  // reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+  const {
+    images,
+    brand,
+    name,
+    price,
+    discount,
+    quantity,
+    sizes,
+    tags,
+    availability,
+    description,
+    categoryId,
+    categories,
+    sellerId,
+  } = req.body;
 
   try {
     // Check if all required product details are provided
+    const missingFields = [];
+    if (images.length === 0) {
+      missingFields.push("images");
+    }
+    if (sizes.length === 0) {
+      missingFields.push("sizes");
+    }
+    if (tags.length === 0) {
+      missingFields.push("tags");
+    }
+    if (categories.length === 0) {
+      missingFields.push("categories");
+    }
+    if (!brand) {
+      missingFields.push("brand");
+    }
+    if (!name) {
+      missingFields.push("name");
+    }
+    if (!price) {
+      missingFields.push("price");
+    }
     if (
-      !title ||
-      !price ||
-      !description ||
-      !availability ||
-      !categoryId ||
-      !images
+      typeof discount === undefined ||
+      typeof discount === "string" ||
+      typeof discount === null
     ) {
-      return res.status(404).send({ message: "Please Provide All Details" });
+      missingFields.push("discount");
+    }
+    if (!quantity) {
+      missingFields.push("quantity");
+    }
+    if (!availability) {
+      missingFields.push("availability");
+    }
+    if (!description) {
+      missingFields.push("description");
+    }
+    // if (!description.manufactured) {
+    //   missingFields.push("description manufactured");
+    // }
+    // if (!description.packed) {
+    //   missingFields.push("description packed");
+    // }
+    // if (!description.packed) {
+    //   missingFields.push("description packed");
+    // }
+    if (!categoryId) {
+      missingFields.push("categoryId");
+    }
+    if (!sellerId) {
+      missingFields.push("sellerId");
+    }
+    if (missingFields.length > 0) {
+      const missingFieldsMessage = `Please provide the following fields: ${missingFields.join(
+        ", "
+      )}`;
+      return res.status(404).send({ message: missingFieldsMessage });
+    }
+    const uploadRes = [];
+
+    for (const image of images) {
+      try {
+        const result = await cloudinary.uploader.upload(image, {
+          upload_preset: "e-commerce_preset",
+        });
+        uploadRes.push({
+          asset_id: result.asset_id,
+          public_id: result.public_id,
+          url: result.url,
+        });
+      } catch (error) {
+        console.error(
+          "Error uploading image to Cloudinary:",
+          res.status(404).send({ error: error.message })
+        );
+        // Handle the error as needed, e.g., log it or send an error response
+      }
     }
 
-    // Find the category with the provided categoryId
-    const findCategory = await CategorytModel.findOne({ _id: categoryId });
-
-    // If the category is not found, return a 404 Not Found status with an error message
-    if (!findCategory) {
-      return res.status(404).send({ message: "Category not found" });
-    }
-
-    // Create a new ProductModel instance with the product details
     const product = new ProductModel({
-      title,
+      images: uploadRes,
+      brand,
+      name,
       price,
+      discount,
+      quantity,
+      sizes,
+      tags,
       description,
       availability,
       categoryId,
-      images,
+      categories,
+      sellerId,
     });
 
     // Save the product to the database
     await product.save();
 
     // Return a success message with a 201 Created status
-    res.status(201).send({ message: "Product added successfully" });
+    return res.status(201).send({ message: "Product added successfully" });
   } catch (error) {
     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
     return res.status(500).send({ message: error.message });
@@ -176,21 +323,21 @@ ProductRouter.post("/add", async (req, res) => {
 
 // ProductRouter.get("/category/:categoryId", ...)
 // Route to retrieve all products for a specific category
-ProductRouter.get("/category/:categoryId", async (req, res) => {
+ProductRouter.get("/search", async (req, res) => {
   // Extract the categoryId from the URL parameter
-  const categoryId = req.params.categoryId;
 
   try {
-    // Find the category with the provided categoryId
-    const findCategory = await CategorytModel.findOne({ _id: categoryId });
-
-    // If the category is not found, return a 404 Not Found status with an error message
-    if (!findCategory) {
-      return res.status(404).send({ message: "Category not found" });
-    }
-
-    // Retrieve all products for the specified category
-    const products = await ProductModel.find({ categoryId });
+    // Get the search query from the query parameters
+    const { query } = req.query;
+    // Retrieve products based on the constructed dynamic query
+    const products = await ProductModel.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } }, // Search by name (case-insensitive partial match)
+        { categories: { $in: [query] } }, // Search by category (exact match in the categories array)
+        { tags: { $regex: new RegExp(query.replace(/\s+/g, "|"), "i") } }, // Search by tags (exact match in the tags array)
+        { brand: { $regex: query, $options: "i" } },
+      ],
+    });
 
     // Return the products as a response with a 200 OK status
     res.status(200).send(products);
@@ -202,7 +349,7 @@ ProductRouter.get("/category/:categoryId", async (req, res) => {
 
 // ProductRouter.get("/:id", ...)
 // Route to retrieve details of a specific product by its ID
-ProductRouter.get("/:id", async (req, res) => {
+ProductRouter.get("/one/:id", async (req, res) => {
   // Extract the product ID from the URL parameter
   const id = req.params.id;
 

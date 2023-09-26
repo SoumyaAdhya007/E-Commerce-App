@@ -1,4 +1,7 @@
 node_modules
 .env
 .vscode
+cloudinary-upload-preset.js
+cloudinary-upload.js
+upload.router.js
 .gitignore

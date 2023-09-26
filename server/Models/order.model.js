@@ -9,6 +9,10 @@ const orderSchema = mongoose.Schema({
     ref: "User", // Reference to the "User" model for population
     required: true,
   },
+  sellerID: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
   // Reference to the product ordered (by its ObjectId)
   productId: {
     type: mongoose.Schema.Types.ObjectId,
