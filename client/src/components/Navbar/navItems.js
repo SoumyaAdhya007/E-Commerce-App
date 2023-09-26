@@ -1,0 +1,96 @@
+export const navItems = [
+  {
+    nav: "MEN",
+    subCategory: [
+      {
+        title: "Topwear",
+        categories: [
+          "Printed T-Shirts",
+          "Oversized T-shirts",
+          "Plain T-Shirts",
+          "Fashion T-Shirts",
+          "Full Sleeve T-Shirts",
+          "Half Sleeve T-Shirts",
+          "Shirts",
+          "Vests",
+          "Co-ord Sets",
+        ],
+      },
+      {
+        title: "Bottomwear",
+        categories: [
+          "Printed T-Shirts",
+          "Oversized T-shirts",
+          "Plain T-Shirts",
+          "Fashion T-Shirts",
+          "Full Sleeve T-Shirts",
+          "Half Sleeve T-Shirts",
+          "Shirts",
+          "Vests",
+          "Co-ord Sets",
+        ],
+      },
+      {
+        title: "Winterwear",
+        categories: [
+          "Printed T-Shirts",
+          "Oversized T-shirts",
+          "Plain T-Shirts",
+          "Fashion T-Shirts",
+          "Full Sleeve T-Shirts",
+          "Half Sleeve T-Shirts",
+          "Shirts",
+          "Vests",
+          "Co-ord Sets",
+        ],
+      },
+    ],
+  },
+  {
+    nav: "WOMEN",
+    subCategory: [
+      {
+        title: "Topwear",
+        categories: [
+          "Printed T-Shirts",
+          "Oversized T-shirts",
+          "Plain T-Shirts",
+          "Fashion T-Shirts",
+          "Full Sleeve T-Shirts",
+          "Half Sleeve T-Shirts",
+          "Shirts",
+          "Vests",
+          "Co-ord Sets",
+        ],
+      },
+      {
+        title: "Bottomwear",
+        categories: [
+          "Printed T-Shirts",
+          "Oversized T-shirts",
+          "Plain T-Shirts",
+          "Fashion T-Shirts",
+          "Full Sleeve T-Shirts",
+          "Half Sleeve T-Shirts",
+          "Shirts",
+          "Vests",
+          "Co-ord Sets",
+        ],
+      },
+      {
+        title: "Winterwear",
+        categories: [
+          "Printed T-Shirts",
+          "Oversized T-shirts",
+          "Plain T-Shirts",
+          "Fashion T-Shirts",
+          "Full Sleeve T-Shirts",
+          "Half Sleeve T-Shirts",
+          "Shirts",
+          "Vests",
+          "Co-ord Sets",
+        ],
+      },
+    ],
+  },
+];

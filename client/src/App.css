@@ -1,0 +1,9 @@
+.custom-border::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 5%; /* To center the border within the Box */
+    width: 90%;
+    height: 3px;
+    background-color: #FBD139;
+  }
