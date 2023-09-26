@@ -185,8 +185,15 @@ UserRouter.post("/login", async (req, res) => {
       if (result) {
         // If the password is correct, generate a JWT token
         const expiresIn = 7 * 24 * 60 * 60;
+
+        const role = ["user"];
+        if (user.isSeller) {
+          role.push("seller");
+        } else if (user.isAdmin) {
+          role.push("admin");
+        }
         const token = jwt.sign(
-          { userID: user._id, role: "user" },
+          { userID: user._id, role: role },
           LOGIN_TOKEN_SECRET,
           {
             expiresIn,

@@ -14,7 +14,8 @@ const userSchema = mongoose.Schema({
 
   // Password for the user account
   password: { type: String, required: true },
-
+  isSeller: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
   // User's shopping cart containing product items
   cart: [
     {
@@ -27,6 +28,7 @@ const userSchema = mongoose.Schema({
         type: Number,
         default: 1,
       },
+      size: { type: String, required: true },
     },
   ],
 
