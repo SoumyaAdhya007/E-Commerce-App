@@ -1,3 +1,4 @@
+import React, { useContext } from "react";
 import {
   Box,
   Text,
@@ -12,20 +13,21 @@ import {
   AccordionItem,
   AccordionButton,
   AccordionIcon,
-} from "@chakra-ui/react";
-import { useContext } from "react";
-import { Link } from "react-router-dom";
-import { AccountContext } from "../../context/context";
-import { HamburgerIcon } from "@chakra-ui/icons";
-import MobileSubNav from "./mobileSubNav";
-import UserOptions from "./userOptions";
+} from "@chakra-ui/react"; // Chakra UI components and hooks
+import { Link } from "react-router-dom"; // React Router DOM for navigation
+import { AccountContext } from "../../context/context"; // Account context for user information
+import { HamburgerIcon } from "@chakra-ui/icons"; // Chakra UI icon
+import MobileSubNav from "./mobileSubNav"; // MobileSubNav component
+import UserOptions from "./userOptions"; // UserOptions component
+import { capitalizeFirstLetter } from "./capitalizeWordFirstLetter"; // Function to capitalize the first letter of a word
+
 const MobileNav = ({ navItems }) => {
+  // User context and state variables
   const { isLogedIn, setIsLogedIn, userDetails } = useContext(AccountContext);
 
+  // Drawer state
   const { isOpen, onOpen, onClose } = useDisclosure();
-  function capitalizeFirstLetter(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  }
+
   return (
     <>
       <HamburgerIcon color="#303030" fontSize="2xl" onClick={onOpen} />
@@ -34,6 +36,7 @@ const MobileNav = ({ navItems }) => {
         <DrawerContent>
           <DrawerCloseButton />
           <DrawerHeader>
+            {/* Render user information or welcome message */}
             {isLogedIn && Object.keys(userDetails).length !== 0 ? (
               <Text as="b" fontSize="xl">
                 Hello{" "}
@@ -60,9 +63,10 @@ const MobileNav = ({ navItems }) => {
             )}
           </DrawerHeader>
           <DrawerBody>
+            {/* Render navigation items */}
             {navItems.map((navItem, index) => {
               return !navItem.subcategories && navItem.link ? (
-                <Link to={navItem.link}>
+                <Link to={navItem.link} key={index}>
                   <Box w={"100%"} textAlign={"center"} mt={5}>
                     <Text as="b" color={"rgba(0, 0, 0, 0.9)"}>
                       {capitalizeFirstLetter(navItem.name)}
@@ -70,14 +74,19 @@ const MobileNav = ({ navItems }) => {
                   </Box>
                 </Link>
               ) : !navItem.subcategories && !navItem.link ? (
-                <Box w={"100%"} textAlign={"center"} mt={5}>
+                <Box key={index} w={"100%"} textAlign={"center"} mt={5}>
                   <Text as="b" color={"rgba(0, 0, 0, 0.9)"}>
                     {capitalizeFirstLetter(navItem.name)}
                   </Text>
                 </Box>
               ) : (
-                <Accordion width="100%" defaultIndex={[0]} allowMultiple>
-                  <AccordionItem key={index}>
+                <Accordion
+                  key={index}
+                  width="100%"
+                  defaultIndex={[0]}
+                  allowMultiple
+                >
+                  <AccordionItem>
                     <h2>
                       <AccordionButton>
                         <Box as="span" flex="1" textAlign="left">
@@ -92,6 +101,7 @@ const MobileNav = ({ navItems }) => {
               );
             })}
 
+            {/* Render user profile options if logged in */}
             {isLogedIn && (
               <Box mt={5}>
                 <Text textAlign="left" color="rgba(0,0,0,.5)">
@@ -106,4 +116,5 @@ const MobileNav = ({ navItems }) => {
     </>
   );
 };
-export default MobileNav;
+
+export default MobileNav; // Export the MobileNav component

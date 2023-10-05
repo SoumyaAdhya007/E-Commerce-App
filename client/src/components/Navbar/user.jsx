@@ -1,14 +1,16 @@
+import React, { useContext } from "react";
 import {
   Popover,
   PopoverContent,
   Text,
   PopoverTrigger,
-} from "@chakra-ui/react";
-import PermIdentityOutlinedIcon from "@mui/icons-material/PermIdentityOutlined";
-import UserOptions from "./userOptions";
-import { useContext } from "react";
-import { AccountContext } from "../../context/context";
+} from "@chakra-ui/react"; // Chakra UI components
+import PermIdentityOutlinedIcon from "@mui/icons-material/PermIdentityOutlined"; // Material-UI icon
+import UserOptions from "./userOptions"; // UserOptions component
+import { AccountContext } from "../../context/context"; // Account context for user information
+
 const User = () => {
+  // User context and state variables
   const { isLogedIn, userDetails } = useContext(AccountContext);
 
   return isLogedIn && Object.keys(userDetails).length !== 0 ? (
@@ -28,4 +30,5 @@ const User = () => {
     </Popover>
   ) : null;
 };
-export default User;
+
+export default User; // Export the User component

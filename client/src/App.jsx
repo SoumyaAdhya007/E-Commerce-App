@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AccountProvider from "./context/context";
-import { useContext } from "react";
+import CartProvider from "./context/cartContext";
+import CheckoutProvider from "./context/checkoutContext";
 import Home from "./components/User/Home/home";
 import Login from "./components/Login/login";
 import AllProducts from "./components/User/ProductCategoryPage/allProducts";
@@ -17,35 +18,46 @@ import SellerProducts from "./components/Seller/Products/sellerProducts";
 import AddProduct from "./components/Seller/Products/AddProduct/addProduct";
 import SellerAllProducts from "./components/Seller/Products/sellerAllProducts";
 import EditProduct from "./components/Seller/Products/editProduct";
+import Checkout from "./components/User/Cart/Checkout/checkout";
+
 function App() {
   return (
     <BrowserRouter>
       <AccountProvider>
         <Routes>
-          {/* <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/category/:category" element={<AllProducts />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/account/orders" element={<Order />} />
-          <Route path="/account/addresses" element={<Address />} />
-          <Route path="/account/profile" element={<Profile />} />
-          <Route path="/seller/dashboard" element={<Dashboard />} />
-          <Route path="/seller/order" element={<SellerOrder />} />
-          <Route path="/seller/product" element={<SellerProducts />} />
-          <Route path="*" element={<PageNotFound />} /> */}
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/category/:category" element={<AllProducts />} />
           <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
+          <Route
+            path="/cart"
+            element={
+              <CartProvider>
+                <Cart />
+              </CartProvider>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <CartProvider>
+                <CheckoutProvider>
+                  <Checkout />
+                </CheckoutProvider>
+              </CartProvider>
+            }
+          />
+
+          {/* User Account Routes */}
           <Route path="/account">
             <Route path="myaccount" element={<Account />} />
-            <Route path="orders" element={<Order />} />
-            <Route path="addresses" element={<Address />} />
+            <Route path="order" element={<Order />} />
+            <Route path="address" element={<Address />} />
             <Route path="profile" element={<Profile />} />
           </Route>
+
+          {/* Seller Routes */}
           <Route path="/seller">
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="order" element={<SellerOrder />} />
@@ -55,6 +67,8 @@ function App() {
               <Route path="editproduct" element={<EditProduct />} />
             </Route>
           </Route>
+
+          {/* 404 Page */}
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </AccountProvider>

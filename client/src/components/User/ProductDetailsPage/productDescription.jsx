@@ -50,14 +50,14 @@ const ProductDescription = ({ description }) => {
                   Rs.999. Coupon code - <Text as="b">NEW200</Text>
                 </Text>
               </Flex>
-              <Flex mt={1}>
+              {/* <Flex mt={1}>
                 <LocalOfferIcon />
                 <Text>
                   Whistles! Get extra 20% Cashback on prepaid orders above
                   Rs.499. Coupon code - <Text as="b">NEW20</Text>. Applicable
                   for new customers only!
                 </Text>
-              </Flex>
+              </Flex> */}
             </AccordionPanel>
           </>
         )}

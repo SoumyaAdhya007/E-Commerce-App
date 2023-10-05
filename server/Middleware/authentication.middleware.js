@@ -5,8 +5,8 @@ require("dotenv").config();
 // Middleware function for authentication
 const Authentication = (req, res, next) => {
   // Get the JWT token from the request's cookies or headers
-  let token = req.cookies.token || req.headers.authorization.split(" ")[1];
-
+  let token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+  // console.log(req.cookies.token);
   // Check if the token is missing
   if (!token) {
     // If token is missing, return a 401 Unauthorized status with an error message
@@ -23,6 +23,7 @@ const Authentication = (req, res, next) => {
     try {
       // If the token is valid, extract the user ID from the decoded token and add it to the request body
       req.body.userID = decoded.userID;
+      req.body.role = decoded.role;
       // Call the next middleware or route handler in the chain
       next();
     } catch (error) {

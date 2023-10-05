@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Flex,
   Popover,
@@ -5,13 +6,10 @@ import {
   VStack,
   Text,
   PopoverTrigger,
-} from "@chakra-ui/react";
-import { Link } from "react-router-dom";
-const DeskstopSubNav = ({ navItems }) => {
-  function capitalizeFirstLetter(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  }
-  console.log("DeskstopSubNav=>", navItems);
+} from "@chakra-ui/react"; // Chakra UI components and hooks
+import { Link } from "react-router-dom"; // React Router DOM for navigation
+import { capitalizeFirstLetter } from "./capitalizeWordFirstLetter";
+const DesktopSubNav = ({ navItems }) => {
   return (
     <>
       {navItems.map((navItem, index) => {
@@ -23,6 +21,7 @@ const DeskstopSubNav = ({ navItems }) => {
             strategy="fixed"
           >
             <PopoverTrigger>
+              {/* Render a link or text based on the existence of a link */}
               {navItem.link && navItem.link !== "#" ? (
                 <Link to={navItem.link}>
                   <Text as="b" color={"rgba(0, 0, 0, 0.9)"}>
@@ -35,6 +34,7 @@ const DeskstopSubNav = ({ navItems }) => {
                 </Text>
               )}
             </PopoverTrigger>
+            {/* Render subcategories if they exist */}
             {navItem.subcategories && (
               <PopoverContent w={"100vw"} mt={2} p={5}>
                 <Flex
@@ -45,7 +45,7 @@ const DeskstopSubNav = ({ navItems }) => {
                 >
                   {navItem.subcategories.map((subcategory, index) => {
                     return (
-                      <VStack key={index}>
+                      <VStack key={subcategory._id}>
                         <Text fontSize={"lg"} color={"#494949"} as="b">
                           {capitalizeFirstLetter(subcategory.name)}
                         </Text>
@@ -54,6 +54,7 @@ const DeskstopSubNav = ({ navItems }) => {
                             return (
                               <Link
                                 to={`/category/${nestedsubcategory._id.toLocaleLowerCase()}`}
+                                key={nestedsubcategory._id}
                               >
                                 <Text
                                   fontSize={"md"}
@@ -82,4 +83,5 @@ const DeskstopSubNav = ({ navItems }) => {
     </>
   );
 };
-export default DeskstopSubNav;
+
+export default DesktopSubNav; // Export the DesktopSubNav component

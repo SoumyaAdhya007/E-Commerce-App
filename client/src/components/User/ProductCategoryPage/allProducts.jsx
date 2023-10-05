@@ -26,16 +26,15 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../Navbar/navbar";
 import ProductCard from "./productCard";
 import "../../../App.css";
-import data from "../../../data";
 import { useState, useEffect } from "react";
 import { getProducts } from "../../../service/api";
+import NoSearch from "../../../../images/no-search.png";
 const AllProducts = () => {
   const { category } = useParams();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  // console.log(navigate(-1));
-  console.log(category);
+  const [loading, setLoading] = useState(true);
+
   const filters = [
     {
       filter: "Size",
@@ -49,15 +48,23 @@ const AllProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       // const id = "650c7356b1676f74c42f7ffa";
-      const response = await getProducts(category);
+      const search = decodeURIComponent(category);
+      const response = await getProducts(search);
       setProducts(response);
+      setLoading(false);
     };
     fetchProducts();
   }, [category]);
   return loading ? (
-    <>
-      <Spinner />
-    </>
+    <Flex h={"500px"} justifyContent={"center"} alignItems={"center"}>
+      <Spinner
+        thickness="4px"
+        speed="0.65s"
+        emptyColor="gray.200"
+        color="blue.500"
+        size="xl"
+      />
+    </Flex>
   ) : (
     <>
       <Navbar />
@@ -70,30 +77,42 @@ const AllProducts = () => {
           className="custom-border"
         >
           <Heading as="h4" size="md">
-            {}({products.length})
+            {category}({products.length})
           </Heading>
         </Box>
-        <Flex width={"100%"} justifyContent={"space-between"}>
-          <DesktopFilterContainer filters={filters} />
+        {/* <Flex width={"100%"} justifyContent={"space-between"}>
+          <DesktopFilterContainer filters={filters} /> */}
+        {products.length === 0 ? (
+          <Flex
+            h={"500px"}
+            justifyContent={"center"}
+            alignItems={"center"}
+            flexDirection={"column"}
+            textAlign={"center"}
+          >
+            <Text fontSize={"2xl"}>
+              For your search <Text as="b">{category}</Text>
+            </Text>
+            <Image src={NoSearch} alt="No Search" />
+            <Text fontSize={"2xl"}>We couldn't find any matches</Text>
+          </Flex>
+        ) : (
           <SimpleGrid
-            width="78%"
+            width="90%"
             margin="auto"
             minChildWidth="190px"
             spacing="10px"
           >
-            {products ? (
-              products.map((item, i) => {
-                return (
-                  <Link key={i} to={`/product/${item._id}`}>
-                    <ProductCard props={item} icon={"Add To Cart"} />
-                  </Link>
-                );
-              })
-            ) : (
-              <p>No Products avilable</p>
-            )}
+            {products.map((item, i) => {
+              return (
+                <Link key={i} to={`/product/${item._id}`}>
+                  <ProductCard props={item} icon={"Add To Cart"} />
+                </Link>
+              );
+            })}
           </SimpleGrid>
-        </Flex>
+        )}
+        {/* </Flex> */}
       </Box>
     </>
   );

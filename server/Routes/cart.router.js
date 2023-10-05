@@ -30,10 +30,22 @@ CartRouter.get("/", async (req, res) => {
     }
 
     // Get the user's cart from the user object
-    const cart = user.cart;
-
+    const userCart = user.cart;
+    const cartDetails = [];
+    for (let i = 0; i < userCart.length; i++) {
+      const product = await ProductModel.findOne({
+        _id: userCart[i].productId,
+      });
+      cartDetails.push({
+        _id: userCart[i]._id,
+        product,
+        productId: userCart[i].productId,
+        size: userCart[i].size,
+        quantity: userCart[i].quantity,
+      });
+    }
     // Send the cart data as a response with a 200 OK status
-    res.status(200).send(cart);
+    res.status(200).send(cartDetails);
   } catch (error) {
     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
     res.status(500).send({ message: error.message });
@@ -44,7 +56,7 @@ CartRouter.get("/", async (req, res) => {
 // Add a product to the user's cart
 CartRouter.post("/", async (req, res) => {
   // Extract the productId, quantity (default is 1), and userID from the request body
-  const { productId, quantity = 1, userID } = req.body;
+  const { productId, size, quantity = 1, userID } = req.body;
 
   try {
     // Find the user with the provided userID
@@ -54,7 +66,9 @@ CartRouter.post("/", async (req, res) => {
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
-
+    if (!productId || !size || !quantity) {
+      res.status(404).send({ message: "Please provide all fields." });
+    }
     // Find the product with the provided productId that is currently available
     const product = await ProductModel.findOne({
       _id: productId,
@@ -78,6 +92,7 @@ CartRouter.post("/", async (req, res) => {
         $push: {
           cart: {
             productId,
+            size,
             quantity,
           },
         },
@@ -85,7 +100,7 @@ CartRouter.post("/", async (req, res) => {
     );
 
     // Return a success message with a 200 OK status
-    res.send({ message: "Product added to cart" });
+    res.status(200).send({ message: "Product added to cart" });
   } catch (error) {
     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
     res.status(500).send({ message: error.message });
@@ -99,11 +114,9 @@ CartRouter.delete("/:id", async (req, res) => {
   const productId = req.params.id;
 
   // Extract the userId from the request body
-  const { userId } = req.body;
-
+  const { userID } = req.body;
   // Find the user with the provided userId
-  const user = await UserModel.findOne({ _id: userId });
-
+  const user = await UserModel.findOne({ _id: userID });
   // Retrieve the user's cart
   const cart = user.cart;
 
@@ -112,7 +125,7 @@ CartRouter.delete("/:id", async (req, res) => {
     try {
       // If the product is in the cart, remove it from the cart using $pull operation
       await UserModel.findOneAndUpdate(
-        { _id: userId },
+        { _id: userID },
         {
           $pull: { cart: { productId } },
         }
@@ -132,15 +145,14 @@ CartRouter.delete("/:id", async (req, res) => {
   }
 });
 
-// CartRouter.patch("/increase/:id", ...)
-// Route to increase the quantity of a product in the user's cart
-CartRouter.patch("/quantity/:id", async (req, res) => {
+// CartRouter.patch("/:id", ...)
+// Route to update the size & quantity of a product in the user's cart
+CartRouter.patch("/:id", async (req, res) => {
   // Extract the productId from the URL parameter
   const productId = req.params.id;
 
   // Extract the userID from the request body
-  const { quantity, userID } = req.body;
-
+  const { size, quantity, userID } = req.body;
   try {
     // Find the user with the provided userID
     const user = await UserModel.findOne({ _id: userID });
@@ -157,10 +169,14 @@ CartRouter.patch("/quantity/:id", async (req, res) => {
     const foundItem = cart.find(
       (item) => item.productId.toString() === productId
     );
-
     if (foundItem) {
+      const product = await ProductModel.findOne({ _id: foundItem.productId });
+      const isSizeAvilable = product.sizes.some(
+        (item) => item.size === size && item.quantity >= quantity
+      );
       // If the item is found and the quantity is less than 10, increase the quantity by 1 and save the user
-      if (foundItem.quantity <= 10 || foundItem.quantity > 0) {
+      if (isSizeAvilable) {
+        foundItem.size = size;
         foundItem.quantity = quantity;
         await user.save();
         return res.status(200).send({
@@ -168,11 +184,9 @@ CartRouter.patch("/quantity/:id", async (req, res) => {
         });
       } else {
         // If the quantity is already 10, return a 404 Not Found status with an error message
-        return res
-          .status(404)
-          .send({
-            message: "You Cannot add more than 10 items or less than 1 items",
-          });
+        return res.status(404).send({
+          message: "The selected size or quantity is not available",
+        });
       }
     } else {
       // If the item is not found in the cart, return a 404 Not Found status with an error message
