@@ -1,9 +1,11 @@
 // Import required modules
 const express = require("express");
 const ProductModel = require("../Models/product.model");
+const UserModel = require("../Models/user.model");
 const CategorytModel = require("../Models/category.model");
 const cloudinary = require("cloudinary").v2;
-
+const { Authentication } = require("../Middleware/authentication.middleware");
+const mongoose = require("mongoose");
 // Create an Express router instance
 const ProductRouter = express.Router();
 
@@ -73,91 +75,32 @@ const ProductRouter = express.Router();
 
 // ProductRouter.post("/add", ...)
 // Route to add a new product
-ProductRouter.post("/", async (req, res) => {
-  // Extract product details from the request body
-  // images: [],
-  // brand: "",
-  // name: "",
-  // price: 1,
-  // discount: 0,
-  // quantity: 1,
-  // sizes: [],
-  // tags: [],
-  // description: {
-  //   about: "",
-  //   manufactured: "",
-  //   packed: "",
-  // },
-  // categoryId: "",
-  // categoryies: [],
-  // sellerId: "1",
-  // images: [
-  //   {
-  //     asset_id: { type: String, required: true },
-  //     public_id: { type: String, required: true },
-  //     url: { type: String, required: true },
-  //   },
-  // ],
-  // brand: {
-  //   type: String,
-  //   required: true,
-  // },
-  // // Title of the product (e.g., name of the product)
-  // name: {
-  //   type: String,
-  //   required: true,
-  // },
-  // // Price of the product
-  // price: {
-  //   type: Number,
-  //   required: true,
-  // },
-  // discount,
-  // quantity: { type: Number, required: true },
-  // sizes: [{ type: String, required: true }],
-  // tags: [{ type: String, required: true }],
-  // // Description of the product
-  // description: {
-  //   about: { type: String, required: true },
-  //   manufactured: { type: String, required: true },
-  //   packed: { type: String, required: true },
-  // },
-  // // Availability status of the product (true or false). Default is true.
-  // availability: {
-  //   type: Boolean,
-  //   default: true,
-  // },
-  // // Category to which the product belongs (referenced by its ObjectId)
-  // categoryId: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Category", // Reference to the "Category" model for population
-  //   required: true,
-  // },
-  // categoryies: [{ type: String, required: true }],
-
-  // sellerId: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Category", // Reference to the "Category" model for population
-  //   required: true,
-  // },
-  // reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+ProductRouter.post("/", Authentication, async (req, res) => {
+  const { userID, role } = req.body;
   const {
     images,
     brand,
     name,
     price,
     discount,
-    quantity,
     sizes,
     tags,
     availability,
     description,
     categoryId,
     categories,
-    sellerId,
   } = req.body;
 
   try {
+    const user = await UserModel.findOne({ _id: userID });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    if (!user.isSeller) {
+      return res
+        .status(404)
+        .send({ message: "You do not have permission to add new products" });
+    }
     // Check if all required product details are provided
     const missingFields = [];
     if (images.length === 0) {
@@ -188,29 +131,14 @@ ProductRouter.post("/", async (req, res) => {
     ) {
       missingFields.push("discount");
     }
-    if (!quantity) {
-      missingFields.push("quantity");
-    }
     if (!availability) {
       missingFields.push("availability");
     }
     if (!description) {
       missingFields.push("description");
     }
-    // if (!description.manufactured) {
-    //   missingFields.push("description manufactured");
-    // }
-    // if (!description.packed) {
-    //   missingFields.push("description packed");
-    // }
-    // if (!description.packed) {
-    //   missingFields.push("description packed");
-    // }
     if (!categoryId) {
       missingFields.push("categoryId");
-    }
-    if (!sellerId) {
-      missingFields.push("sellerId");
     }
     if (missingFields.length > 0) {
       const missingFieldsMessage = `Please provide the following fields: ${missingFields.join(
@@ -218,6 +146,7 @@ ProductRouter.post("/", async (req, res) => {
       )}`;
       return res.status(404).send({ message: missingFieldsMessage });
     }
+
     const uploadRes = [];
 
     for (const image of images) {
@@ -245,14 +174,13 @@ ProductRouter.post("/", async (req, res) => {
       name,
       price,
       discount,
-      quantity,
       sizes,
       tags,
       description,
       availability,
-      categoryId,
+      categoryId: new mongoose.Types.ObjectId(categoryId),
       categories,
-      sellerId,
+      sellerId: user._id,
     });
 
     // Save the product to the database
@@ -265,7 +193,70 @@ ProductRouter.post("/", async (req, res) => {
     return res.status(500).send({ message: error.message });
   }
 });
+ProductRouter.get("/merchant", Authentication, async (req, res) => {
+  const { userID, role } = req.body;
+  const { search } = req.query;
+  try {
+    const user = await UserModel.findOne({ _id: userID });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    if (!user.isSeller) {
+      return res
+        .status(404)
+        .send({ message: "You do not have permission to get products" });
+    }
+    if (!search) {
+      const products = await ProductModel.find({ sellerId: userID });
+      if (!products) {
+        return res.status(404).send({ message: "Products not found." });
+      }
+      return res.status(200).send(products);
+    }
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(search);
 
+    // Define the base query to filter by sellerId
+    const baseQuery = { sellerId: userID };
+
+    // Define an array to hold additional search criteria
+    const searchCriteria = [];
+
+    // Check if the search query is a valid ObjectId
+    if (isValidObjectId) {
+      // If it's a valid ObjectId, add a condition to search by categoryId
+      searchCriteria.push({ categoryId: search });
+    } else {
+      // If it's not a valid ObjectId, add conditions to search by other fields
+      searchCriteria.push(
+        {
+          name: { $regex: search, $options: "i" }, // Search by name (case-insensitive partial match)
+        },
+        {
+          categories: { $in: [search] }, // Search by category (exact match in the categories array)
+        },
+        {
+          tags: { $regex: new RegExp(search.replace(/\s+/g, "|"), "i") }, // Search by tags (exact match in the tags array)
+        },
+        {
+          brand: { $regex: search, $options: "i" }, // Search by brand (case-insensitive partial match)
+        }
+      );
+    }
+
+    // Combine the base query and search criteria using the $and operator
+    const query = {
+      $and: [baseQuery, { $or: searchCriteria }],
+    };
+
+    // Find products that match the combined query
+    const products = await ProductModel.find(query);
+
+    // Return the products as a response with a 200 OK status
+    res.status(200).send(products);
+  } catch (error) {
+    return res.status(500).send({ message: error.message });
+  }
+});
 /**
  * @swagger
  * /product/category/{categoryId}:
@@ -321,23 +312,50 @@ ProductRouter.post("/", async (req, res) => {
  *                   type: string
  */
 
-// ProductRouter.get("/category/:categoryId", ...)
-// Route to retrieve all products for a specific category
+// ProductRouter.get("/search?query=query", ...)
+// Route to retrieve all products for a specific query
 ProductRouter.get("/search", async (req, res) => {
   // Extract the categoryId from the URL parameter
 
   try {
     // Get the search query from the query parameters
     const { query } = req.query;
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(query);
     // Retrieve products based on the constructed dynamic query
+    if (isValidObjectId) {
+      const products = await ProductModel.find({ categoryId: query });
+
+      // Return the products as a response with a 200 OK status
+      res.status(200).send(products);
+      return;
+    }
+    const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const regexQuery = new RegExp(escapedQuery, "i");
+
     const products = await ProductModel.find({
       $or: [
-        { name: { $regex: query, $options: "i" } }, // Search by name (case-insensitive partial match)
+        { name: { $regex: regexQuery } }, // Search by name (case-insensitive partial match)
         { categories: { $in: [query] } }, // Search by category (exact match in the categories array)
-        { tags: { $regex: new RegExp(query.replace(/\s+/g, "|"), "i") } }, // Search by tags (exact match in the tags array)
-        { brand: { $regex: query, $options: "i" } },
+        // { tags: { $regex: new RegExp(query.replace(/\s+/g, "|"), "i") } }, // Search by tags (exact match in the tags array)
+        {
+          tags: { $in: [query] },
+        },
+        { brand: { $regex: regexQuery } },
       ],
     });
+    // const products = await ProductModel.find({
+    //   $or: [
+    //     { name: { $regex: query, $options: "i" } }, // Search by name (case-insensitive partial match)
+    //     { categories: { $in: [query] } }, // Search by category (exact match in the categories array)
+    //     // { tags: { $regex: new RegExp(query.replace(/\s+/g, "|"), "i") } }, // Search by tags (exact match in the tags array)
+    //     {
+    //       tags: {
+    //         $regex: new RegExp(query.replace(/\s+/g, "\\s*"), "i"),
+    //       },
+    //     },
+    //     { brand: { $regex: query, $options: "i" } },
+    //   ],
+    // });
 
     // Return the products as a response with a 200 OK status
     res.status(200).send(products);
@@ -349,7 +367,7 @@ ProductRouter.get("/search", async (req, res) => {
 
 // ProductRouter.get("/:id", ...)
 // Route to retrieve details of a specific product by its ID
-ProductRouter.get("/one/:id", async (req, res) => {
+ProductRouter.get("/:id", async (req, res) => {
   // Extract the product ID from the URL parameter
   const id = req.params.id;
 
@@ -514,24 +532,49 @@ ProductRouter.patch("/change/:id", async (req, res) => {
 
 // ProductRouter.delete("/:id", ...)
 // Route to delete a specific product by its ID
-ProductRouter.delete("/:id", async (req, res) => {
+ProductRouter.delete("/:id", Authentication, async (req, res) => {
   // Extract the product ID from the URL parameter
   const id = req.params.id;
-
+  const { userID, role } = req.body;
   try {
+    const user = await UserModel.findOne({ _id: userID });
     // Find the product with the provided ID
-    const product = await ProductModel.findOne({ _id: id });
-
-    // If the product is not found, return a 404 Not Found status with an error message
-    if (!product) {
-      return res.status(404).send({ message: "Product not found" });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
     }
+    if (user.isAdmin) {
+      const product = await ProductModel.findOne({ _id: id });
 
-    // Delete the product from the database
-    await ProductModel.delete({ _id: id });
+      // If the product is not found, return a 404 Not Found status with an error message
+      if (!product) {
+        return res.status(404).send({ message: "Product not found" });
+      }
+      // Delete the product from the database
+      await ProductModel.findByIdAndDelete({ _id: id });
 
-    // Return a success message with a 200 OK status
-    res.status(200).send({ message: "Product deleted successfully" });
+      // Return a success message with a 200 OK status
+      res.status(200).send({ message: "Product deleted successfully" });
+      return;
+    }
+    if (user.isSeller) {
+      const product = await ProductModel.findOne({
+        _id: id,
+        sellerId: userID,
+      });
+
+      if (!product) {
+        return res.status(404).send({ message: "Product not found" });
+      }
+      // Delete the product from the database
+
+      await ProductModel.findByIdAndDelete({ _id: id });
+
+      res.status(200).send({ message: "Product deleted successfully" });
+      return;
+    }
+    return res
+      .status(404)
+      .send({ message: "You do not have permission to delete product" });
   } catch (error) {
     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
     res.status(500).send({ message: error.message });

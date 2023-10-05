@@ -26,8 +26,12 @@ const productSchema = mongoose.Schema({
     required: true,
   },
   discount: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  sizes: [{ type: String, required: true }],
+  sizes: [
+    {
+      size: { type: String, required: true },
+      quantity: { type: Number, required: true },
+    },
+  ],
   tags: [{ type: String, required: true }],
   // Description of the product
   description: {
@@ -50,7 +54,6 @@ const productSchema = mongoose.Schema({
 
   sellerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Category", // Reference to the "Category" model for population
     required: true,
   },
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],

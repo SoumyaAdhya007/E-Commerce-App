@@ -9,7 +9,7 @@ const orderSchema = mongoose.Schema({
     ref: "User", // Reference to the "User" model for population
     required: true,
   },
-  sellerID: {
+  sellerId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
@@ -19,17 +19,24 @@ const orderSchema = mongoose.Schema({
     ref: "Product", // Reference to the "Product" model for population
     required: true,
   },
+  size: {
+    type: String,
+  },
   // Quantity of the product ordered (default value is 1)
   quantity: {
     type: Number,
     default: 1,
+    required: true,
   },
   // Shipping address details for the order
   address: {
-    pincode: { type: String, required: true }, // Pincode of the delivery address
-    state: { type: String, required: true }, // State of the delivery address
-    city: { type: String, required: true }, // City of the delivery address
-    road_name: { type: String, required: true }, // Road name or address line of the delivery address
+    name: { type: String, required: true },
+    phone: { type: Number, required: true },
+    pincode: { type: Number, required: true }, // Pincode of the address
+    state: { type: String, required: true }, // State of the address
+    city: { type: String, required: true }, // City of the address
+    house: { type: String, required: true }, // Road name or address line
+    area: { type: String, required: true }, // Road name or address line
   },
   // Status of the order (can only be one of the specified enum values)
   status: {
@@ -40,21 +47,31 @@ const orderSchema = mongoose.Schema({
       "shipped",
       "delivered",
       "cancelled",
+      "exchange",
+      "exchange cancelled",
+      "exchanged",
       "return",
+      "return cancelled",
       "returned",
     ],
-    default: "pending",
+    default: "processing",
   },
   // Role of the user placing the order (customer, seller, admin)
-  role: {
-    type: String,
-    enum: ["customer", "seller", "admin"],
-    require: true,
-  },
+
   // Date of when the order was placed
   orderDate: {
     type: Date,
     required: true,
+  },
+  paymentDetails: {
+    paymentId: { type: String, required: true },
+    amount: { type: Number, required: true },
+    merchantReceive: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["PAID", "UNPAID", "RETURN"],
+      default: "UNPAID",
+    },
   },
 });
 

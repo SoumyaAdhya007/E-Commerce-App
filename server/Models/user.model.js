@@ -35,11 +35,13 @@ const userSchema = mongoose.Schema({
   // Array of user's addresses for shipping
   address: [
     {
+      name: { type: String, required: true },
+      phone: { type: Number, required: true },
       pincode: { type: Number, required: true }, // Pincode of the address
       state: { type: String, required: true }, // State of the address
       city: { type: String, required: true }, // City of the address
-      road_name: { type: String, required: true }, // Road name or address line
-      isSelected: { type: Boolean, default: false }, // Indicates if this address is currently selected
+      house: { type: String, required: true }, // Road name or address line
+      area: { type: String, required: true }, // Road name or address line
     },
   ],
 });
