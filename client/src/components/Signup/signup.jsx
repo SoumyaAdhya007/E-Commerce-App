@@ -18,6 +18,7 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import Navbar from "../Navbar/navbar";
 import "react-toastify/dist/ReactToastify.css";
+import { tostErrorMessage, tostSuccessMessage } from "../../service/tost";
 const theme = createTheme();
 
 const SignupForm = styled(Box)(({ theme }) => ({
@@ -41,6 +42,8 @@ const ChangeForm = styled(Button)(({ theme }) => ({
   textDecoration: "underline",
 }));
 const Signup = ({ setChangeToSignUp }) => {
+  const [loading, setLoading] = useState(false);
+
   const [signupFormData, setSignupFormData] = useState({
     name: "",
     email: "",
@@ -52,16 +55,7 @@ const Signup = ({ setChangeToSignUp }) => {
     "Should contain at least one uppercase letter (A-Z), one lowercase letter (a-z), at least one numeric digit (0–9), and one special character (e.g., @, $,!, etc.).",
     "Should not contain any spaces.",
   ];
-  const toastifyEmitter = {
-    position: "top-center",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "colored",
-  };
+
   const handelChange = (e) => {
     const { name, value } = e.target;
 
@@ -80,21 +74,25 @@ const Signup = ({ setChangeToSignUp }) => {
       );
     }
     try {
+      setLoading(true);
       const response = await axios.post(
         `http://localhost:8080/user/signup`,
         signupFormData
       );
       if (response.status === 201) {
-        toast.success("Signup Successfully", toastifyEmitter);
+        tostSuccessMessage("Signup Successfully");
         setTimeout(() => {
           setChangeToSignUp(false);
         }, 2000);
+        setLoading(false);
 
         return;
       }
     } catch (error) {
-      toast.error(error.response.data.message, toastifyEmitter);
+      tostErrorMessage(error.response.data.message);
       console.error("Error while signing up", error.message);
+      setLoading(false);
+
       return;
     }
   };
@@ -184,6 +182,8 @@ const Signup = ({ setChangeToSignUp }) => {
 
             <Button
               type="submit"
+              isLoading={loading}
+              isDisabled={loading}
               sx={{
                 width: "100%",
                 padding: "10px",
@@ -197,18 +197,7 @@ const Signup = ({ setChangeToSignUp }) => {
               Signup
             </Button>
           </form>
-          <ToastContainer
-            position="top-center"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-          />
+          <ToastContainer />
         </SignupForm>
       </ThemeProvider>
     </>

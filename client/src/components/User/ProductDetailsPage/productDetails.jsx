@@ -1,6 +1,5 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import data from "../../../data";
 import {
   Box,
   Text,
@@ -18,39 +17,74 @@ import ProductCard from "../ProductCategoryPage/productCard";
 import ImageSlider from "./imageSlider";
 import SizeOptions from "./sizeOptions";
 import ProductDescription from "./productDescription";
-import { getOneProduct, getProducts } from "../../../service/api";
+import Options from "../Cart/options";
+import { ToastContainer, toast } from "react-toastify";
+import { tostErrorMessage, tostSuccessMessage } from "../../../service/tost";
+import {
+  getOneProduct,
+  getProducts,
+  addToCart,
+  jwt_expired,
+} from "../../../service/api";
 const ProductDetails = () => {
   const { id } = useParams();
-  console.log("Received id:", id);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [addToCartLoading, setAddToCartLoading] = useState(false);
   const [productDetails, setProductDetails] = useState({});
   const [similarProducts, setSimilarProducts] = useState([]);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedQty, setSelectedQty] = useState(1);
+  const [options, setOptions] = useState([]);
   const isMobileOrTablet = useBreakpointValue({ base: true, lg: false });
   const fetchOneProduct = async () => {
     setLoading(true);
     const response = await getOneProduct(id);
-    console.log(response);
     if (response.status === 200) {
-      console.log("product", response.data.images);
       setProductDetails(response.data);
     } else {
       alert(JSON.stringify(response));
       setProductDetails([]);
     }
     const products = await getProducts(response.data.categoryId);
-    console.log("similar products", products);
     setSimilarProducts(products);
     setLoading(false);
   };
-  console.log("id=>", id, "outside fetch", productDetails.images);
   useEffect(() => {
-    console.log("useEffect is running");
     fetchOneProduct();
   }, [id]);
-  const handleSizeSelection = (size) => {
-    setSelectedSize(size);
+  const handleSizeSelection = (elem) => {
+    setSelectedSize(elem.size);
     // Perform any other actions based on the selected size
+  };
+  const hnadelAddToCart = async () => {
+    if (!selectedSize) {
+      return tostErrorMessage("Please select a size.");
+    }
+    setAddToCartLoading(true);
+    const response = await addToCart({
+      productId: productDetails._id,
+      quantity: selectedQty,
+      size: selectedSize,
+    });
+    if (response.status === 200) {
+      tostSuccessMessage(response.data.message);
+    } else if (
+      response.response.data.message === "jwt_expired" ||
+      response.response.data.message === "Access Denied"
+    ) {
+      tostErrorMessage("Please Login to add to cart");
+
+      setTimeout(() => {
+        jwt_expired();
+      }, 2000);
+    } else {
+      tostErrorMessage(response.response.data.message);
+    }
+    setAddToCartLoading(false);
+    setSelectedSize("");
+    setSelectedQty(1);
+    setOptions([]);
   };
   return (
     <>
@@ -67,6 +101,8 @@ const ProductDetails = () => {
         </Flex>
       ) : (
         <>
+          <ToastContainer />
+
           <Flex width={{ lg: "90%" }} wrap="wrap" margin="auto">
             <ImageSlider
               images={productDetails.images}
@@ -102,15 +138,25 @@ const ProductDetails = () => {
               {productDetails.tags ? (
                 <HStack width="100%" mt={5} spacing={1}>
                   {productDetails.tags.map((tag) => {
-                    return <Tag>{tag}</Tag>;
+                    return <Tag key={tag}>{tag}</Tag>;
                   })}
                 </HStack>
               ) : null}
 
               <SizeOptions
                 sizeOptions={productDetails.sizes}
-                onSelectSize={handleSizeSelection}
+                selectedSize={selectedSize}
+                setSelectedSize={setSelectedSize}
+                setOptions={setOptions}
               />
+              {selectedSize && (
+                <Options
+                  optionName={"Qty"}
+                  selectedOption={selectedQty}
+                  setSelectedOption={setSelectedQty}
+                  options={options}
+                />
+              )}
               <Box width="100%" mt={10}>
                 <Button
                   width="100%"
@@ -118,6 +164,8 @@ const ProductDetails = () => {
                   fontFamily="montserrat-semibold, sans-serif"
                   fontWeight="400"
                   _hover={{ backgroundColor: "#ffcd1d" }}
+                  onClick={hnadelAddToCart}
+                  disabled={addToCartLoading}
                 >
                   {" "}
                   <ShoppingBagOutlinedIcon sx={{ marginBottom: "5px" }} />
@@ -127,7 +175,7 @@ const ProductDetails = () => {
               <ProductDescription description={productDetails.description} />
             </Box>
           </Flex>
-          {similarProducts ? (
+          {similarProducts.length > 1 ? (
             <Box width="90%" margin="auto" mt={10}>
               <Text as="b">SIMILAR PRODUCTS</Text>
               <Flex
@@ -142,13 +190,15 @@ const ProductDetails = () => {
                   "-ms-overflow-style": "none",
                 }}
               >
-                {similarProducts.slice(0, 6).map((item, i) => {
-                  return (
-                    <Link key={i} to={`/product/${item._id}`}>
-                      <ProductCard props={item} />
-                    </Link>
-                  );
-                })}
+                {similarProducts
+                  .filter((product, i) => product._id !== productDetails._id)
+                  .map((product, i) => {
+                    return (
+                      <Link key={i} to={`/product/${product._id}`}>
+                        <ProductCard props={product} />
+                      </Link>
+                    );
+                  })}
               </Flex>
             </Box>
           ) : null}

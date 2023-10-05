@@ -9,8 +9,6 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-// import Navbar from "./Navbar/navabr";
-// import Navbar from "../../Navbar/navbar";
 import Navbar from "../../Navbar/navbar";
 import Carousel from "./carousel";
 import Footer from "../Footer/footer";

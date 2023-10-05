@@ -17,12 +17,12 @@ const Account = () => {
     {
       optionName: "My Orders",
       text: "View, modify and track orders",
-      link: "orders",
+      link: "order",
     },
     {
       optionName: "My Addresses",
       text: "Edit, add or remove addresses",
-      link: "addresses",
+      link: "address",
     },
     {
       optionName: "My Profile",

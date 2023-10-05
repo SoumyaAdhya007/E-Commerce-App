@@ -1,26 +1,31 @@
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
   Image,
   Input,
   Text,
-  Textarea,
-  AspectRatio,
   SimpleGrid,
   Spinner,
+  Flex,
 } from "@chakra-ui/react";
-import { useState, useRef, useEffect } from "react";
-import ProductDetailsForm from "./productDetailsForm";
-import axios from "axios";
+import { ToastContainer } from "react-toastify";
 import { addNewProduct } from "../../../../service/api";
+import {
+  tostErrorMessage,
+  tostSuccessMessage,
+  tostWarnMessage,
+} from "../../../../service/tost";
+import ProductDetailsForm from "./productDetailsForm";
+
 const AddProduct = () => {
+  // Initial product details object
   const productDetailsObj = {
     images: [],
     brand: "",
     name: "",
     price: 1,
     discount: 0,
-    quantity: 1,
     sizes: [],
     tags: [],
     description: {
@@ -30,16 +35,15 @@ const AddProduct = () => {
     },
     availability: true,
     categoryId: "",
-    categoryies: [],
-    sellerId: "64c08720366797888f0a0deb",
+    categories: [],
   };
+
   const [productDetails, setProductDetails] = useState(productDetailsObj);
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewFiles, setPreviewFiles] = useState([]);
+  const [resetSelector, setResetSelector] = useState(false);
   const fileInputRef = useRef(null);
-  const [submit, setSubmit] = useState(false);
-  const [url, setUrl] = useState("");
 
   // Function to handle file selection
   useEffect(() => {
@@ -48,11 +52,22 @@ const AddProduct = () => {
       images: selectedFiles,
     }));
   }, [selectedFiles]);
+
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
-    setPreviewFiles(files);
-    TransformFile(files);
+    // Check if the total selected files are less than or equal to 8
+    if (selectedFiles.length + files.length <= 8) {
+      setPreviewFiles(files);
+      TransformFile(files);
+    } else {
+      // Display a message or alert to the user that they've exceeded the limit
+      tostErrorMessage("You can select up to 8 files.");
+      event.target.value = "";
+      setPreviewFiles([]);
+      setSelectedFiles([]);
+    }
   };
+
   const TransformFile = (files) => {
     if (files) {
       files.forEach(async (file) => {
@@ -62,49 +77,56 @@ const AddProduct = () => {
           setSelectedFiles((prev) => [...prev, reader.result]);
         };
       });
+    }
+  };
 
-      // productDetails.images = selectedFiles;
-    }
-  };
-  const uploadFiles = async () => {
-    console.log("Uploading files...", selectedFiles);
-    try {
-      const response = await axios.post("http://localhost:8080/api/upload", {
-        images: selectedFiles,
-      });
-      console.log("Files uploaded to Cloudinary:", response.data);
-      setPreviewFiles([]);
-      setSelectedFiles([]);
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      setPreviewFiles([]);
-      setSelectedFiles([]);
-    }
-  };
   const handelSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     console.log(productDetails);
-    const response = await addNewProduct(productDetails);
-    // alert(JSON.stringify(productDetails));
-    if (response.status !== 201) {
-      alert(response.response.data.message);
+    if (productDetails.sizes.length === 0) {
+      return tostErrorMessage("Please add a size and quantity to your product");
     }
-    setProductDetails(productDetails);
+    if (productDetails.categories.length === 0) {
+      return tostErrorMessage("Please add categories to your product");
+    }
+    setLoading(true);
+    const response = await addNewProduct(productDetails);
+
+    if (response.status !== 201) {
+      tostWarnMessage(response.response.data.message);
+    }
+
+    if (response.status === 201) {
+      tostSuccessMessage("Product Added Successfully");
+    }
+
+    // Reset form and state
+    setResetSelector(true);
+    setProductDetails(productDetailsObj);
     setSelectedFiles([]);
     setPreviewFiles([]);
     setLoading(false);
   };
+
   return loading ? (
-    <>
-      <Spinner />
-    </>
+    <Flex h={"500px"} justifyContent={"center"} alignItems={"center"}>
+      <Spinner
+        thickness="4px"
+        speed="0.65s"
+        emptyColor="gray.200"
+        color="blue.500"
+        size="xl"
+      />
+    </Flex>
   ) : (
     <Box>
+      <ToastContainer />
+
       <Box w={"90%"} m={"auto"}>
         <Text as={"b"} fontSize={"2xl"} textAlign={"center"}>
           Add Product Images
         </Text>
+
         {previewFiles.length > 0 && (
           <SimpleGrid
             width="100%"
@@ -126,33 +148,34 @@ const AddProduct = () => {
             ))}
           </SimpleGrid>
         )}
+
         <form onSubmit={handelSubmit}>
           <Input
             type="file"
             name="files"
             accept="image/*"
+            min={1}
+            max={8}
             multiple
             required
             onChange={handleFileChange}
-            // style={{ display: "none" }}
             ref={fileInputRef} // Correctly reference the ref here
           />
 
-          {/* <Button w={"100%"} onClick={() => fileInputRef.current.click()}>
-            Select All Files At Once
-          </Button> */}
           <ProductDetailsForm
             productDetailsObj={productDetailsObj}
             productDetails={productDetails}
             setProductDetails={setProductDetails}
+            resetSelector={resetSelector}
             handelSubmit={handelSubmit}
           />
+
           <Button
             w={"100%"}
             bg="#FFD84D"
             fontFamily="montserrat-semibold, sans-serif"
             fontWeight="400"
-            _hover={{ backgroundColor: "#ffcd1d" }}
+            _hover="#Ffcd1d"
             type="submit"
           >
             Submit

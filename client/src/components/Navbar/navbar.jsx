@@ -1,138 +1,68 @@
-import { Box } from "@chakra-ui/react";
-import DesktopNav from "./desktopNav";
-import { useContext, useEffect, useState } from "react";
-import { AccountContext } from "../../context/context";
-import { Outlet } from "react-router-dom";
-import { getCategories } from "../../service/api";
+import React, { useContext, useEffect, useState } from "react"; // React and React hooks
+import { Box, Flex, Spinner } from "@chakra-ui/react"; // External UI library components
+import { useLocation } from "react-router-dom"; // React Router DOM for location
+import { getCategories } from "../../service/api"; // External service function
+import { AccountContext } from "../../context/context"; // Context for user account
+
+import DesktopNav from "./desktopNav"; // Internal component
+// Define the Navbar component
 const Navbar = () => {
-  const { isLogedIn, isSeller } = useContext(AccountContext);
+  // Access user login state from the AccountContext using useContext hook
+  const { isLogedIn } = useContext(AccountContext);
+
+  // Define state variables using useState hook
   const [userNavItems, setUserNavItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Access the current location using useLocation hook
+  const location = useLocation();
+  const currentPath = location.pathname.split("/");
+  const isSeller = currentPath.includes("seller");
+
+  // Use the useEffect hook to fetch categories when the component mounts
   useEffect(() => {
+    // Define an async function to fetch categories
     const fetchCategories = async () => {
-      setLoading(true);
-      const response = await getCategories();
+      setLoading(true); // Set loading state to true while fetching
+      const response = await getCategories(); // Fetch categories data
       if (response.status === 200) {
-        setUserNavItems(response.data);
-        setLoading(false);
+        setUserNavItems(response.data); // Update userNavItems state with fetched data
       }
+      setLoading(false); // Set loading state to false after fetching
     };
+
+    // Call the fetchCategories function
     fetchCategories();
-  }, []);
-  // const userNavItems = [
-  //   {
-  //     nav: "MEN",
-  //     link: "#",
-  //     subCategory: [
-  //       {
-  //         title: "Topwear",
-  //         categories: [
-  //           "Printed T-Shirts",
-  //           "Oversized T-shirts",
-  //           "Plain T-Shirts",
-  //           "Fashion T-Shirts",
-  //           "Full Sleeve T-Shirts",
-  //           "Half Sleeve T-Shirts",
-  //           "Shirts",
-  //           "Vests",
-  //           "Co-ord Sets",
-  //         ],
-  //       },
-  //       {
-  //         title: "Bottomwear",
-  //         categories: [
-  //           "Printed T-Shirts",
-  //           "Oversized T-shirts",
-  //           "Plain T-Shirts",
-  //           "Fashion T-Shirts",
-  //           "Full Sleeve T-Shirts",
-  //           "Half Sleeve T-Shirts",
-  //           "Shirts",
-  //           "Vests",
-  //           "Co-ord Sets",
-  //         ],
-  //       },
-  //       {
-  //         title: "Winterwear",
-  //         categories: [
-  //           "Printed T-Shirts",
-  //           "Oversized T-shirts",
-  //           "Plain T-Shirts",
-  //           "Fashion T-Shirts",
-  //           "Full Sleeve T-Shirts",
-  //           "Half Sleeve T-Shirts",
-  //           "Shirts",
-  //           "Vests",
-  //           "Co-ord Sets",
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     nav: "WOMEN",
-  //     link: "#",
-  //     subCategory: [
-  //       {
-  //         title: "Topwear",
-  //         categories: [
-  //           "Printed T-Shirts",
-  //           "Oversized T-shirts",
-  //           "Plain T-Shirts",
-  //           "Fashion T-Shirts",
-  //           "Full Sleeve T-Shirts",
-  //           "Half Sleeve T-Shirts",
-  //           "Shirts",
-  //           "Vests",
-  //           "Co-ord Sets",
-  //         ],
-  //       },
-  //       {
-  //         title: "Bottomwear",
-  //         categories: [
-  //           "Printed T-Shirts",
-  //           "Oversized T-shirts",
-  //           "Plain T-Shirts",
-  //           "Fashion T-Shirts",
-  //           "Full Sleeve T-Shirts",
-  //           "Half Sleeve T-Shirts",
-  //           "Shirts",
-  //           "Vests",
-  //           "Co-ord Sets",
-  //         ],
-  //       },
-  //       {
-  //         title: "Winterwear",
-  //         categories: [
-  //           "Printed T-Shirts",
-  //           "Oversized T-shirts",
-  //           "Plain T-Shirts",
-  //           "Fashion T-Shirts",
-  //           "Full Sleeve T-Shirts",
-  //           "Half Sleeve T-Shirts",
-  //           "Shirts",
-  //           "Vests",
-  //           "Co-ord Sets",
-  //         ],
-  //       },
-  //     ],
-  //   },
-  // ];
+  }, []); // Empty dependency array means this effect runs only once when the component mounts
+
+  // Define an array of navigation items for sellers
   const sellerNavItems = [
     {
-      nav: "Dashboard",
+      name: "Dashboard",
       link: "/seller/dashboard",
     },
     {
-      nav: "Products",
+      name: "Products",
       link: "/seller/product",
     },
     {
-      nav: "Orders",
+      name: "Orders",
       link: "/seller/order",
     },
   ];
 
-  return (
+  // Render loading spinner if loading state is true, else render the navigation bar
+  return loading ? (
+    <Flex h={"auto"} justifyContent={"center"} alignItems={"center"}>
+      <Spinner
+        thickness="4px"
+        speed="0.65s"
+        emptyColor="gray.200"
+        color="blue.500"
+        size="xl"
+      />
+    </Flex>
+  ) : (
     <>
       <Box
         w={"100%"}
@@ -143,10 +73,14 @@ const Navbar = () => {
         p={3}
         bg={"white"}
       >
-        <DesktopNav navItems={userNavItems} />
+        {/* Render the DesktopNav component with appropriate navigation items based on user login and role */}
+        <DesktopNav
+          navItems={isLogedIn && isSeller ? sellerNavItems : userNavItems}
+        />
       </Box>
     </>
   );
 };
 
+// Export the Navbar component for use in other parts of the application
 export default Navbar;

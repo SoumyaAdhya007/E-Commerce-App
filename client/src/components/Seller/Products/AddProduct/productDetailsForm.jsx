@@ -1,97 +1,46 @@
-import { Box, Button, Input, Select, Text, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Input,
+  Select,
+  Text,
+  Textarea,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+} from "@chakra-ui/react";
 import { useState, useRef } from "react";
 import CategorySelector from "./categorySelector";
+import { ToastContainer, toast } from "react-toastify";
+import { tostErrorMessage } from "../../../../service/tost";
+
 const ProductDetailsForm = ({
   productDetails,
   setProductDetails,
+  resetSelector,
   handelSubmit,
 }) => {
-  // const [productDetails, setProductDetails] = useState(productDetailsObj);
-  const staticCategories = [
-    {
-      _id: "1",
-      name: "Men",
-      subcategories: [
-        {
-          _id: "2",
-          name: "Topwear",
-          subcategories: [
-            { _id: "3", name: "Printed T-Shirts" },
-            { _id: "4", name: "Oversized T-shirts" },
-            { _id: "5", name: "Plain T-Shirts" },
-            { _id: "6", name: "Fashion T-Shirts" },
-            { _id: "7", name: "Full Sleeve T-Shirts" },
-            { _id: "8", name: "Half Sleeve T-Shirts" },
-            { _id: "9", name: "Shirts" },
-            { _id: "10", name: "Vests" },
-            { _id: "11", name: "Co-ord Sets" },
-          ],
-        },
-        {
-          _id: "12",
-          name: "Bottomwear",
-          subcategories: [
-            { _id: "13", name: "Jeans" },
-            { _id: "14", name: "Trousers" },
-          ],
-        },
-        {
-          _id: "15",
-          name: "Winterwear",
-          subcategories: [
-            { _id: "16", name: "Jackets" },
-            { _id: "17", name: "Sweaters" },
-          ],
-        },
-      ],
-    },
-    {
-      _id: "18",
-      name: "Women",
-      subcategories: [
-        {
-          _id: "19",
-          name: "Topwear",
-          subcategories: [
-            { _id: "20", name: "Printed T-Shirts" },
-            { _id: "21", name: "Oversized T-shirts" },
-            { _id: "22", name: "Plain T-Shirts" },
-            { _id: "23", name: "Fashion T-Shirts" },
-            { _id: "24", name: "Full Sleeve T-Shirts" },
-            { _id: "25", name: "Half Sleeve T-Shirts" },
-            { _id: "26", name: "Shirts" },
-            { _id: "27", name: "Blouses" },
-            { _id: "28", name: "Co-ord Sets" },
-          ],
-        },
-        {
-          _id: "29",
-          name: "Bottomwear",
-          subcategories: [
-            { _id: "30", name: "Jeans" },
-            { _id: "31", name: "Leggings" },
-          ],
-        },
-        {
-          _id: "32",
-          name: "Winterwear",
-          subcategories: [
-            { _id: "33", name: "Coats" },
-            { _id: "34", name: "Sweaters" },
-          ],
-        },
-      ],
-    },
-  ];
-
-  // const [selectedCategory, setSelectedCategory] = useState([]);
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const initialRef = useRef(null);
+  const finalRef = useRef(null);
+  const [size, setSize] = useState("");
+  const [quantity, setQuantity] = useState("");
   const handleCategoryChange = (category) => {
     const categories = category.map((category) => {
       return category.split(" ")[1];
     });
     const categoryId = category[categories.length - 1].split(" ")[0];
-    console.log(categories);
     setProductDetails((prev) => ({
       ...prev,
       categoryId: categoryId,
@@ -100,7 +49,7 @@ const ProductDetailsForm = ({
   };
   const handelTextChange = (e) => {
     const { name, value } = e.target;
-    if (name === "sizes" || name === "tags") {
+    if (name === "tags") {
       const valueArray = value.toLocaleUpperCase().split(",");
 
       setProductDetails((prev) => ({
@@ -117,7 +66,7 @@ const ProductDetailsForm = ({
           [descriptionKey]: value,
         },
       }));
-    } else if (name === "price" || name === "discount" || name === "quantity") {
+    } else if (name === "price" || name === "discount") {
       setProductDetails((prev) => ({
         ...prev,
         [name]: parseInt(value),
@@ -129,8 +78,36 @@ const ProductDetailsForm = ({
       }));
     }
   };
+  const handelSizeQunatity = (e) => {
+    // e.preventDefault();
+
+    // Create a new object representing the size and quantity
+    const newSizeQuantity = { size, quantity };
+    if (size && quantity) {
+      // Update productDetails.sizes by creating a new array with the new object
+      console.log("before", productDetails.sizes.includes(size));
+      if (productDetails.sizes.some((item) => item.size === size)) {
+        return tostErrorMessage("Size is already included.");
+      }
+      setProductDetails((prev) => ({
+        ...prev,
+        sizes: [...prev.sizes, newSizeQuantity],
+      }));
+      // Clear the size and quantity inputs
+      setSize("");
+      setQuantity("");
+      onClose();
+    } else {
+      return tostErrorMessage(
+        "Please enter both size and quantity before saving."
+      );
+    }
+  };
+
   return (
     <Box>
+      <ToastContainer />
+
       <Text as={"b"} fontSize={"2xl"}>
         Add Product Details
       </Text>
@@ -177,15 +154,31 @@ const ProductDetailsForm = ({
         />
       </Box>
       <Box>
-        <Text as={"b"}>Quantity :</Text>
-        <Input
-          name="quantity"
-          type="number"
-          required
-          value={productDetails.quantity}
-          min="1"
-          onChange={handelTextChange}
-        />
+        <Text as={"b"}>Size & Quantity:</Text>
+        <TableContainer w={"70%"} m={"auto"} mt={2} mb={2}>
+          <Table variant="unstyled">
+            <Thead>
+              <Tr>
+                <Th>Size</Th>
+                <Th>Quantity</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {productDetails.sizes.length !== 0 &&
+                productDetails.sizes.map((elem, index) => {
+                  return (
+                    <Tr key={index}>
+                      <Td>{elem.size}</Td>
+                      <Td>{elem.quantity}</Td>
+                    </Tr>
+                  );
+                })}
+            </Tbody>
+          </Table>
+        </TableContainer>
+        <Button w={"100%"} m={"auto"} colorScheme="blue" onClick={onOpen}>
+          Add Size & Quantity
+        </Button>
       </Box>
       <Box>
         <Text as={"b"}>Availability :</Text>
@@ -202,16 +195,6 @@ const ProductDetailsForm = ({
         </Select>
       </Box>
       <Box>
-        <Text as={"b"}>sizes (Use "," for different sizes) :</Text>
-        <Textarea
-          name="sizes"
-          required
-          value={productDetails.sizes}
-          onChange={handelTextChange}
-          placeholder="S, M, L"
-        />
-      </Box>
-      <Box>
         <Text as={"b"}>Tags (Use "," for different tags) :</Text>
         <Textarea
           name="tags"
@@ -222,8 +205,8 @@ const ProductDetailsForm = ({
         />
       </Box>
       <CategorySelector
-        categories={staticCategories}
         onCategoryChange={handleCategoryChange}
+        resetSelector={resetSelector}
       />
 
       <Text as={"b"} fontSize={"lg"}>
@@ -258,7 +241,51 @@ const ProductDetailsForm = ({
           />
         </Box>
       </Box>
+      <Modal
+        initialFocusRef={initialRef}
+        finalFocusRef={finalRef}
+        isOpen={isOpen}
+        onClose={onClose}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add Product Size & Quantity</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <Text as={"b"}>Size :</Text>
+            <Input
+              ref={initialRef}
+              type="text"
+              value={size}
+              placeholder="Size"
+              onChange={(e) => setSize(e.target.value)}
+              required
+            />
+            <Text as={"b"}>Quantity :</Text>
+            <Input
+              type="number"
+              value={quantity}
+              placeholder="Quantity"
+              onChange={(e) => setQuantity(parseInt(e.target.value))}
+              required
+            />
+            <Button
+              mt={1}
+              type="submit"
+              colorScheme="blue"
+              mr={3}
+              onClick={handelSizeQunatity}
+            >
+              Save
+            </Button>
+            <Button mt={1} onClick={onClose}>
+              Cancel
+            </Button>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
+
 export default ProductDetailsForm;

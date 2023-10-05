@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Box,
   Text,
@@ -6,14 +7,11 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-} from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+} from "@chakra-ui/react"; // Chakra UI components
+import { Link } from "react-router-dom"; // React Router DOM for navigation
+import { capitalizeFirstLetter } from "./capitalizeWordFirstLetter"; // Function to capitalize the first letter of a word
 
 const MobileSubNav = ({ navItem }) => {
-  function capitalizeFirstLetter(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  }
-  console.log("Mobile SubNav:", navItem);
   return (
     <>
       <AccordionPanel pb={4}>
@@ -59,4 +57,5 @@ const MobileSubNav = ({ navItem }) => {
     </>
   );
 };
-export default MobileSubNav;
+
+export default MobileSubNav; // Export the MobileSubNav component

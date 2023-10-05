@@ -7,8 +7,11 @@ import {
   Flex,
   useBreakpointValue,
 } from "@chakra-ui/react";
+import { ToastContainer, toast } from "react-toastify";
+
 import { getCategories, addNewSubcategory } from "../../../../service/api";
-const CategorySelector = ({ onCategoryChange }) => {
+import { tostErrorMessage, tostWarnMessage } from "../../../../service/tost";
+const CategorySelector = ({ onCategoryChange, resetSelector }) => {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([" ", " ", " "]);
   const [newCategory, setNewCategory] = useState("");
@@ -27,21 +30,27 @@ const CategorySelector = ({ onCategoryChange }) => {
       if (response.status === 200) {
         setCategories(response.data);
       } else {
-        alert(JSON.stringify(response.config.data.message));
+        tostErrorMessage(response.response.data.message);
       }
-      console.log(`fecth ${updatedCategories}`, response);
     };
     fetchCategories();
   }, []);
   useEffect(() => {
     onCategoryChange(selectedCategories);
   }, [selectedCategories]);
+  useEffect(() => {
+    if (resetSelector) {
+      setSelectedCategories([" ", " ", " "]);
+      setNewCategory("");
+      setOpenAddNewCategory(false);
+      setCategoryList2([]);
+      setCategoryList3([]);
+    }
+  }, [resetSelector]);
   const subCategoryList = (categories, value) => {
-    console.log("categoryList :=>", categories, "value :=>", value);
     const matchingCategories = categories.filter(
       (category) => value === category.name
     );
-    console.log(matchingCategories);
     return matchingCategories[0].subcategories
       ? matchingCategories[0].subcategories
       : [];
@@ -53,8 +62,6 @@ const CategorySelector = ({ onCategoryChange }) => {
     if (value === "new") {
       setSelectedCategories((prevSelected) => {
         const newSelected = [...prevSelected];
-        // if (index >= 0 && index < newSelected.length) {
-        // }
         for (let i = index; i < newSelected.length; i++) {
           newSelected[i] = " ";
         }
@@ -78,9 +85,11 @@ const CategorySelector = ({ onCategoryChange }) => {
     }
   };
   const handleNewCategoryChange = (event) => {
-    if (/[^a-zA-Z]/.test(event.key)) {
+    // Allow only letters (A-Z, a-z), spaces, and backspace
+    if (/[^a-zA-Z\s]/.test(event.target.value) && event.key !== "Backspace") {
       event.preventDefault();
-      return alert("Please enter only letters (A-Z, a-z)");
+      tostWarnMessage("Please enter only letters (A-Z, a-z) and spaces.");
+      return;
     }
     setNewCategory(event.target.value);
   };
@@ -90,23 +99,22 @@ const CategorySelector = ({ onCategoryChange }) => {
       const selectedCategoryIndex = selectedCategories.findIndex((category) => {
         return category === " ";
       });
-      console.log(selectedCategoryIndex);
+
       const response = await addNewSubcategory(
         selectedCategories[selectedCategoryIndex - 1].split(" ")[0],
         { subcategory: newCategory }
       );
       if (response.status !== 201) {
-        return alert(response.message);
+        return tostErrorMessage(response.data.message);
       }
       setNewCategory("");
       setOpenAddNewCategory(false);
       setUpdatedCategories(!updatedCategories);
       const categoriesResponse = await getCategories();
-
-      setCategories(categoriesResponse);
+      setCategories(categoriesResponse.data);
 
       const subcategories = subCategoryList(
-        categoriesResponse,
+        categoriesResponse.data,
         selectedCategories[0].split(" ")[1]
       );
       if (selectedCategoryIndex === 1) {
@@ -123,6 +131,7 @@ const CategorySelector = ({ onCategoryChange }) => {
 
   return (
     <>
+      <ToastContainer />
       <Flex flexDirection={isMobile ? "column" : null}>
         {selectedCategories.map((selectedCategory, index) => (
           <Select
