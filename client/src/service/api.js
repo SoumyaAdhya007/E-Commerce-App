@@ -245,9 +245,31 @@ export const addNewProduct = async (data) => {
   }
 };
 
+export const removeProductImage = async (productId, image) => {
+  try {
+    const response = await instance.delete(
+      `${BaseURL}/product/image/${productId}`,
+
+      { data: { image: image } }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error posting product :", error);
+    return error;
+  }
+};
 export const removeProduct = async (id) => {
   try {
     const response = await instance.delete(`${BaseURL}/product/${id}`);
+    return response;
+  } catch (error) {
+    console.error("Error posting product :", error);
+    return error;
+  }
+};
+export const updateProduct = async (id, data) => {
+  try {
+    const response = await instance.patch(`${BaseURL}/product/${id}`, data);
     return response;
   } catch (error) {
     console.error("Error posting product :", error);

@@ -1,21 +1,49 @@
-import React, { useState, useEffect } from "react";
-import { Box, Flex, Image, Text, Spinner } from "@chakra-ui/react";
+import React, { useState, useEffect, useContext } from "react";
+import {
+  Box,
+  Flex,
+  Image,
+  Text,
+  Spinner,
+  Input,
+  FormControl,
+  FormLabel,
+  Select,
+  Button,
+} from "@chakra-ui/react";
 import {
   getMerchantOrders,
   updateOrderStatusByMerchant,
 } from "../../../service/api";
 import { ToastContainer, toast } from "react-toastify";
 import EmptyCart from "../../../../images/empty-cart-page-doodle.png";
-import Navbar from "../../Navbar/navbar";
 import SellerOrderItem from "./sellerOrderItem";
 import { tostErrorMessage, tostInfoMessage } from "../../../service/tost";
+import { MerchantContext } from "../../../context/merchantContext";
 
 // SellerOrder component
 const SellerOrder = () => {
   // State variables
   const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState([]);
+  // const [orders, setOrders] = useState([]);
+  const [filterDate, setFilterDate] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const { orders, setOrders, products, setProducts } =
+    useContext(MerchantContext);
 
+  const options = [
+    "pending",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "exchange",
+    "exchange cancelled",
+    "exchanged",
+    "return",
+    "return cancelled",
+    "returned",
+  ];
   // Function to fetch seller orders
   const fetchSellerOrders = async () => {
     setLoading(true);
@@ -30,10 +58,10 @@ const SellerOrder = () => {
   };
 
   // Fetch seller orders when component mounts
-  useEffect(() => {
-    fetchSellerOrders();
-  }, []);
-
+  // useEffect(() => {
+  //   if(order)
+  //   fetchSellerOrders();
+  // }, []);
   // Function to handle order status change
   const handleOrderStatusChange = async ({
     currentStatus,
@@ -71,13 +99,95 @@ const SellerOrder = () => {
       fetchSellerOrders();
     }
   };
+  // Function to filter orders
+  const filterOrders = () => {
+    // Filter orders based on filterDate and filterStatus
+    let filteredOrders = [...orders];
+
+    if (filterDate) {
+      filteredOrders = filteredOrders.filter((order) => {
+        // Convert orderDate to the format expected by datetime-local input
+        const orderDateFormatted = new Date(
+          order.orderDetails.orderDate
+        ).toDateString();
+        console.log(
+          "orderDateFormatted =>" + orderDateFormatted,
+          "filterDate =>",
+          new Date(filterDate).toDateString(),
+          "isMatch =>",
+          orderDateFormatted === new Date(filterDate).toDateString()
+        );
+        return new Date(filterDate).toDateString() === orderDateFormatted;
+      });
+    }
+
+    if (filterStatus) {
+      filteredOrders = filteredOrders.filter(
+        (order) =>
+          order.orderDetails.status.toLowerCase() === filterStatus.toLowerCase()
+      );
+    }
+
+    // Now, filteredOrders contains the filtered results
+    console.log(filteredOrders);
+    setOrders(filteredOrders);
+  };
 
   // Render component
   return (
     <>
-      <Navbar />
       <ToastContainer />
-
+      <Flex
+        w={"90%"}
+        m={"auto"}
+        mt={10}
+        mb={10}
+        justifyContent={"space-evenly"}
+        gap={15}
+      >
+        <FormControl>
+          <FormLabel>Choose a date :</FormLabel>
+          <Input
+            placeholder="Select Date and Time"
+            size="md"
+            type="date"
+            border={"1px solid gray"}
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Choose a date :</FormLabel>
+          <Select
+            placeholder="Select Order Status"
+            size="md"
+            border={"1px solid gray"}
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            {options.map((opt, index) => {
+              return (
+                <option key={index} value={opt}>
+                  {opt.toLocaleUpperCase()}
+                </option>
+              );
+            })}
+          </Select>
+        </FormControl>
+        <Flex w={"20%"} wrap={"wrap"} gap={1}>
+          <Button w={"100%"} colorScheme="twitter" onClick={filterOrders}>
+            Filter
+          </Button>
+          <Button
+            w={"100%"}
+            colorScheme="orange"
+            type="reset"
+            onClick={() => fetchSellerOrders()}
+          >
+            Reset
+          </Button>
+        </Flex>
+      </Flex>
       {loading ? (
         // Display a spinner while loading
         <Flex h={"500px"} justifyContent={"center"} alignItems={"center"}>
@@ -91,17 +201,19 @@ const SellerOrder = () => {
         </Flex>
       ) : orders.length !== 0 ? (
         // Display orders if there are any
-        <Box p={5}>
-          {orders.map((order, index) => {
-            return (
-              <SellerOrderItem
-                key={index}
-                orderDetails={order.orderDetails}
-                productDetails={order.productDetails}
-                handleOrderStatusChange={handleOrderStatusChange}
-              />
-            );
-          })}
+        <Box>
+          <Box w={"90%"} m={"auto"}>
+            {orders.map((order, index) => {
+              return (
+                <SellerOrderItem
+                  key={index}
+                  orderDetails={order.orderDetails}
+                  productDetails={order.productDetails}
+                  handleOrderStatusChange={handleOrderStatusChange}
+                />
+              );
+            })}
+          </Box>
         </Box>
       ) : (
         // Display empty cart message if no orders
@@ -114,9 +226,7 @@ const SellerOrder = () => {
           mt={10}
         >
           <Image h="300px" w="300px" src={EmptyCart} alt="Empty Cart" />
-          <Text fontSize="lg">
-            Sadly, you haven't placed any orders till now.
-          </Text>
+          <Text fontSize="lg">Sadly, you haven't any order.</Text>
         </Flex>
       )}
     </>

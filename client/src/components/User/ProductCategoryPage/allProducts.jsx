@@ -23,7 +23,6 @@ import {
 // import { Card, CardHeader, CardBody, CardFooter } from "@chakra-ui/react";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import Navbar from "../../Navbar/navbar";
 import ProductCard from "./productCard";
 import "../../../App.css";
 import { useState, useEffect } from "react";
@@ -67,7 +66,6 @@ const AllProducts = () => {
     </Flex>
   ) : (
     <>
-      <Navbar />
       <Box width={{ base: "100%", md: "95%", lg: "90%" }} margin="auto">
         <Box
           position="relative"
@@ -101,7 +99,7 @@ const AllProducts = () => {
             width="90%"
             margin="auto"
             minChildWidth="190px"
-            spacing="10px"
+            spacing={10}
           >
             {products.map((item, i) => {
               return (

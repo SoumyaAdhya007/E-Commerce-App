@@ -16,7 +16,6 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useEffect, useContext, useState } from "react";
-import Navbar from "../../Navbar/navbar";
 import Options from "./options";
 import Price from "../ProductCategoryPage/price";
 import ProductImage from "../ProductCategoryPage/productImage";

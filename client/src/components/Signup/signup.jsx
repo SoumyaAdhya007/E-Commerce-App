@@ -16,7 +16,6 @@ import { createTheme } from "@mui/material";
 import { passwordStrength } from "check-password-strength";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import Navbar from "../Navbar/navbar";
 import "react-toastify/dist/ReactToastify.css";
 import { tostErrorMessage, tostSuccessMessage } from "../../service/tost";
 const theme = createTheme();
@@ -99,7 +98,6 @@ const Signup = ({ setChangeToSignUp }) => {
 
   return (
     <>
-      <Navbar />
       <ThemeProvider theme={theme}>
         <SignupForm>
           <Typography

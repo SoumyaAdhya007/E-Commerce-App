@@ -9,9 +9,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-import Navbar from "../../Navbar/navbar";
 import Carousel from "./carousel";
-import Footer from "../Footer/footer";
 const Home = () => {
   const images = [
     "https://images.bewakoof.com/uploads/grid/app/1X1-BANNER-01-graphic-printed-common-1692334928.jpg",
@@ -82,7 +80,6 @@ const Home = () => {
   ];
   return (
     <>
-      <Navbar />
       <Carousel images={images} />
       <Flex
         width="95%"
@@ -137,8 +134,6 @@ const Home = () => {
           })}
         </Flex>
       </Box>
-
-      <Footer />
     </>
   );
 };

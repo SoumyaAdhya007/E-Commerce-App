@@ -43,7 +43,7 @@ const Navbar = () => {
     },
     {
       name: "Products",
-      link: "/seller/product",
+      link: "/seller/products",
     },
     {
       name: "Orders",

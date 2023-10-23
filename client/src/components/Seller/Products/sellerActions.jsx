@@ -1,18 +1,14 @@
 import React from "react";
 import { Box, Button, Flex } from "@chakra-ui/react";
-import Navbar from "../../Navbar/navbar";
 import { Link, Outlet } from "react-router-dom";
 
-const SellerProducts = () => {
+const SellerActions = () => {
   return (
     <>
-      {/* Render the Navbar component */}
-      <Navbar />
-
       {/* Flex container for buttons */}
       <Flex w={"90%"} m={"auto"} justifyContent={"space-evenly"}>
         {/* Link to view seller's products */}
-        <Link to={"/seller/product/products"}>
+        <Link to={"/seller/products"}>
           <Button>See Your Products</Button>
         </Link>
 
@@ -23,9 +19,9 @@ const SellerProducts = () => {
       </Flex>
 
       {/* Render child routes */}
-      <Outlet />
+      {/* <Outlet /> */}
     </>
   );
 };
 
-export default SellerProducts;
+export default SellerActions;

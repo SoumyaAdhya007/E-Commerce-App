@@ -7,7 +7,6 @@ import {
   CardBody,
   Card,
 } from "@chakra-ui/react";
-import Navbar from "../../Navbar/navbar";
 import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";
 import { Link } from "react-router-dom";
 
@@ -32,7 +31,6 @@ const Account = () => {
   ];
   return (
     <>
-      <Navbar />
       <Box w={"90%"} m={"auto"}>
         <Box
           position="relative"
