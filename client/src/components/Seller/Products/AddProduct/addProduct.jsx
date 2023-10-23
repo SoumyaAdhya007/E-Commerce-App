@@ -16,8 +16,9 @@ import {
   tostSuccessMessage,
   tostWarnMessage,
 } from "../../../../service/tost";
+import SellerActions from "../sellerActions";
 import ProductDetailsForm from "./productDetailsForm";
-
+import PreviewImages from "./previewImages";
 const AddProduct = () => {
   // Initial product details object
   const productDetailsObj = {
@@ -79,10 +80,24 @@ const AddProduct = () => {
       });
     }
   };
+  const handelRemovePreviewFiles = async (file) => {
+    //   let readerResult;
+    //   const reader = new FileReader();
+    //   reader.readAsDataURL(file);
+    //   reader.onloadend = () => {
+    //     setSelectedFiles((prev) => [...prev, reader.result]);
+    //     readerResult = reader.result;
+    //     console.log(reader.result);
+    //     // const previewFiles = selectedFiles.filter(
+    //     //   (file) => file !== readerResult
+    //     // );
+    //     console.log(readerResult);
+    //     setSelectedFiles(previewFiles);
+    //   };
+  };
 
   const handelSubmit = async (e) => {
     e.preventDefault();
-    console.log(productDetails);
     if (productDetails.sizes.length === 0) {
       return tostErrorMessage("Please add a size and quantity to your product");
     }
@@ -121,14 +136,13 @@ const AddProduct = () => {
   ) : (
     <Box>
       <ToastContainer />
-
+      <SellerActions />
       <Box w={"90%"} m={"auto"}>
         <Text as={"b"} fontSize={"2xl"} textAlign={"center"}>
           Add Product Images
         </Text>
 
-        {previewFiles.length > 0 && (
-          <SimpleGrid
+        {/* <SimpleGrid
             width="100%"
             margin="auto"
             minChildWidth="300px"
@@ -146,7 +160,12 @@ const AddProduct = () => {
                 />
               </Box>
             ))}
-          </SimpleGrid>
+          </SimpleGrid> */}
+        {previewFiles.length > 0 && (
+          <PreviewImages
+            previewFiles={previewFiles}
+            handelRemovePreviewFiles={handelRemovePreviewFiles}
+          />
         )}
 
         <form onSubmit={handelSubmit}>
@@ -163,7 +182,6 @@ const AddProduct = () => {
           />
 
           <ProductDetailsForm
-            productDetailsObj={productDetailsObj}
             productDetails={productDetails}
             setProductDetails={setProductDetails}
             resetSelector={resetSelector}

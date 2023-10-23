@@ -33,7 +33,12 @@ const ProductCard = ({ props, icon }) => {
         {props.rating && <Rating rating={props.rating} />}
       </Box>
       <ProductCartDetails
-        title={props.name.substring(0, 33) + "..."}
+        // title={props.name.substring(0, 33) + "..."}
+        title={
+          props.name.length > 33
+            ? props.name.substring(0, 33) + "..."
+            : props.name
+        }
         price={props.price}
         discount={props.discount}
         icon={icon}

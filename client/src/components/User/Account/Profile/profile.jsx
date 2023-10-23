@@ -12,13 +12,11 @@ import {
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { Link } from "react-router-dom";
 import { AccountContext } from "../../../../context/context";
-import Navbar from "../../../Navbar/navbar";
 
 const Profile = () => {
   const { userDetails } = useContext(AccountContext);
   return (
     <>
-      <Navbar />
       <Box w={"90%"} m={"auto"} mb={10}>
         <Link to={"/account/myaccount"}>
           <Text color="#51CCCC" fontSize={"lg"}>

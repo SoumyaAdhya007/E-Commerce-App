@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -9,10 +9,9 @@ import {
   useBreakpointValue,
   Button,
   Spinner,
+  Heading,
 } from "@chakra-ui/react";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
-import Navbar from "../../Navbar/navbar";
-import Footer from "../Footer/footer";
 import ProductCard from "../ProductCategoryPage/productCard";
 import ImageSlider from "./imageSlider";
 import SizeOptions from "./sizeOptions";
@@ -25,10 +24,14 @@ import {
   getProducts,
   addToCart,
   jwt_expired,
+  removeProduct,
 } from "../../../service/api";
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname.split("/");
+  const onSellerPage = currentPath.includes("seller");
   const [loading, setLoading] = useState(true);
   const [addToCartLoading, setAddToCartLoading] = useState(false);
   const [productDetails, setProductDetails] = useState({});
@@ -86,9 +89,23 @@ const ProductDetails = () => {
     setSelectedQty(1);
     setOptions([]);
   };
+  const handleDelete = async (id) => {
+    try {
+      const response = await removeProduct(id);
+      if (response.status === 200) {
+        tostSuccessMessage(response.data.message);
+        setTimeout(() => {
+          window.location.href = "/seller/products";
+        }, 1500);
+      } else {
+        tostErrorMessage(response.response.data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
   return (
     <>
-      <Navbar />
       {loading ? (
         <Flex h={"500px"} justifyContent={"center"} alignItems={"center"}>
           <Spinner
@@ -114,6 +131,9 @@ const ProductDetails = () => {
               height={isMobileOrTablet ? "auto" : "80vh"}
               overflowY={isMobileOrTablet ? null : "auto"}
             >
+              <Heading as="h3" size="lg" color={"#4F5362"}>
+                {productDetails.brand}
+              </Heading>
               <Text fontSize="xl" fontWeight="500" color="#737373">
                 {productDetails.name}
               </Text>
@@ -157,25 +177,61 @@ const ProductDetails = () => {
                   options={options}
                 />
               )}
-              <Box width="100%" mt={10}>
-                <Button
-                  width="100%"
-                  bg="#FFD84D"
-                  fontFamily="montserrat-semibold, sans-serif"
-                  fontWeight="400"
-                  _hover={{ backgroundColor: "#ffcd1d" }}
-                  onClick={hnadelAddToCart}
-                  disabled={addToCartLoading}
-                >
-                  {" "}
-                  <ShoppingBagOutlinedIcon sx={{ marginBottom: "5px" }} />
-                  ADD TO CART
-                </Button>
-              </Box>
+              {!onSellerPage && (
+                <Box width="100%" mt={10}>
+                  {productDetails.availability ? (
+                    <Button
+                      width="100%"
+                      bg="#FFD84D"
+                      fontFamily="montserrat-semibold, sans-serif"
+                      fontWeight="400"
+                      _hover={{ backgroundColor: "#ffcd1d" }}
+                      onClick={hnadelAddToCart}
+                      disabled={addToCartLoading}
+                    >
+                      {" "}
+                      <ShoppingBagOutlinedIcon sx={{ marginBottom: "5px" }} />
+                      ADD TO CART
+                    </Button>
+                  ) : (
+                    <Button
+                      width="100%"
+                      bg="#D83F31"
+                      fontFamily="montserrat-semibold, sans-serif"
+                      fontWeight="400"
+                      _hover={{ backgroundColor: "#D83F31" }}
+                    >
+                      {" "}
+                      <ShoppingBagOutlinedIcon sx={{ marginBottom: "5px" }} />
+                      OUT OF STOCK
+                    </Button>
+                  )}
+                </Box>
+              )}
+
               <ProductDescription description={productDetails.description} />
             </Box>
           </Flex>
-          {similarProducts.length > 1 ? (
+          {onSellerPage ? (
+            <Flex w={"90%"} m={"auto"} justifyContent={"space-between"} mt={5}>
+              <Button
+                minW={"49%"}
+                maxW={"100%"}
+                colorScheme="red"
+                onClick={() => handleDelete(id)}
+              >
+                Delete
+              </Button>
+              <Button
+                minW={"49%"}
+                maxW={"100%"}
+                colorScheme="linkedin"
+                onClick={() => navigate(`/seller/product/edit/${id}`)}
+              >
+                Edit
+              </Button>
+            </Flex>
+          ) : similarProducts.length > 1 && !onSellerPage ? (
             <Box width="90%" margin="auto" mt={10}>
               <Text as="b">SIMILAR PRODUCTS</Text>
               <Flex
@@ -202,8 +258,6 @@ const ProductDetails = () => {
               </Flex>
             </Box>
           ) : null}
-
-          <Footer />
         </>
       )}
     </>

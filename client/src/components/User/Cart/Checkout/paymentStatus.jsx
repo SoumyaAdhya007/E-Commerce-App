@@ -16,13 +16,7 @@ const PaymentStatus = () => {
     paymentStatus,
     setPaymentStatus,
   } = useContext(CheckoutContext);
-  // http://localhost:5173/checkout?
-  // razorpay_payment_id=pay_MiSG3pUmbCwyBo&
-  // razorpay_payment_link_id=plink_MiSFVbSQrL4vbL&
-  // razorpay_payment_link_reference_id=&
-  // razorpay_payment_link_status=paid&
-  // razorpay_signature=679e95251fb278ad7dc46260f0213f1f2d6c9e7e45d937e29c3fc36ca320baca&
-  // step=3
+
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const paymentId = queryParams.get("razorpay_payment_id");

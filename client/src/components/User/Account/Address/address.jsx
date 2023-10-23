@@ -14,7 +14,6 @@ import {
 import { ChevronLeftIcon, AddIcon } from "@chakra-ui/icons";
 import { Link } from "react-router-dom";
 import { AccountContext } from "../../../../context/context";
-import Navbar from "../../../Navbar/navbar";
 import NewAddress from "./newAddress";
 import { deleteAdddress, getUserDetails } from "../../../../service/api";
 import { tostErrorMessage, tostInfoMessage } from "../../../../service/tost";
@@ -70,8 +69,6 @@ const Address = () => {
   return (
     <>
       <ToastContainer />
-      {/* Render the Navbar component */}
-      <Navbar />
 
       {/* Container for Back to My Account link */}
       <Box w={"90%"} m={"auto"}>

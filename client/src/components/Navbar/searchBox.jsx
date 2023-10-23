@@ -17,7 +17,7 @@ const SearchBox = ({ width }) => {
       // If there's a search value, navigate to the appropriate route
       navigate(
         isSeller
-          ? `/seller/product/products?search=${encodedSearchValue}`
+          ? `/seller/products?search=${encodedSearchValue}`
           : `/category/${encodedSearchValue}`
       );
       setSearchValue(""); // Clear the search input

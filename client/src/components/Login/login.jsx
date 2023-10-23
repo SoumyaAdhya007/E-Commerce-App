@@ -7,7 +7,6 @@ import { ToastContainer, toast } from "react-toastify"; // React toast notificat
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom"; // React Router DOM for navigation
 import Signup from "../Signup/signup"; // Signup component
-import Navbar from "../Navbar/navbar"; // Navbar component
 import Cookie from "cookie-universal"; // Universal cookie manager
 import { getUserDetails } from "../../service/api"; // API functions for user details
 import { AccountContext } from "../../context/context"; // Account context for user information
@@ -112,8 +111,6 @@ const Login = () => {
     <Signup setChangeToSignUp={setChangeToSignUp} />
   ) : (
     <>
-      <Navbar />
-
       <ThemeProvider theme={theme}>
         <LoginForm>
           <Typography

@@ -19,11 +19,17 @@ import {
   Th,
   Td,
   TableContainer,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  Flex,
 } from "@chakra-ui/react";
+import { ChevronRightIcon, EditIcon } from "@chakra-ui/icons";
 import { useState, useRef } from "react";
 import CategorySelector from "./categorySelector";
 import { ToastContainer, toast } from "react-toastify";
 import { tostErrorMessage } from "../../../../service/tost";
+import { useLocation } from "react-router-dom";
 
 const ProductDetailsForm = ({
   productDetails,
@@ -31,11 +37,15 @@ const ProductDetailsForm = ({
   resetSelector,
   handelSubmit,
 }) => {
+  const location = useLocation();
+  const currentPath = location.pathname.split("/");
+  const onEditPage = currentPath.includes("edit");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const initialRef = useRef(null);
   const finalRef = useRef(null);
   const [size, setSize] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [openCategorySelector, setOpenCategorySelector] = useState(onEditPage);
   const handleCategoryChange = (category) => {
     const categories = category.map((category) => {
       return category.split(" ")[1];
@@ -86,13 +96,38 @@ const ProductDetailsForm = ({
     if (size && quantity) {
       // Update productDetails.sizes by creating a new array with the new object
       console.log("before", productDetails.sizes.includes(size));
-      if (productDetails.sizes.some((item) => item.size === size)) {
-        return tostErrorMessage("Size is already included.");
-      }
-      setProductDetails((prev) => ({
-        ...prev,
-        sizes: [...prev.sizes, newSizeQuantity],
-      }));
+      // if (productDetails.sizes.some((item) => item.size === size)) {
+      //   return tostErrorMessage("Size is already included.");
+      // }
+      // setProductDetails((prev) => ({
+      //   ...prev,
+      //   sizes: [...prev.sizes, newSizeQuantity],
+      // }));
+      setProductDetails((prev) => {
+        // Check if the size already exists
+        const sizeExists = prev.sizes.some((item) => item.size === size);
+
+        if (sizeExists) {
+          // If the size already exists, update the quantity
+          const updatedSizes = prev.sizes.map((item) => {
+            if (item.size === size) {
+              return { size, quantity };
+            }
+            return item;
+          });
+
+          return {
+            ...prev,
+            sizes: updatedSizes,
+          };
+        } else {
+          // If the size is not found, add it
+          return {
+            ...prev,
+            sizes: [...prev.sizes, newSizeQuantity],
+          };
+        }
+      });
       // Clear the size and quantity inputs
       setSize("");
       setQuantity("");
@@ -102,6 +137,11 @@ const ProductDetailsForm = ({
         "Please enter both size and quantity before saving."
       );
     }
+  };
+  const handelUpdateSizeQunatity = (size, quantity) => {
+    setSize(size);
+    setQuantity(quantity);
+    onOpen();
   };
 
   return (
@@ -170,13 +210,29 @@ const ProductDetailsForm = ({
                     <Tr key={index}>
                       <Td>{elem.size}</Td>
                       <Td>{elem.quantity}</Td>
+                      <Td>
+                        <EditIcon
+                          onClick={() =>
+                            handelUpdateSizeQunatity(elem.size, elem.quantity)
+                          }
+                        />
+                      </Td>
                     </Tr>
                   );
                 })}
             </Tbody>
           </Table>
         </TableContainer>
-        <Button w={"100%"} m={"auto"} colorScheme="blue" onClick={onOpen}>
+        <Button
+          w={"100%"}
+          m={"auto"}
+          colorScheme="blue"
+          onClick={() => {
+            setSize("");
+            setQuantity("");
+            onOpen();
+          }}
+        >
           Add Size & Quantity
         </Button>
       </Box>
@@ -204,11 +260,50 @@ const ProductDetailsForm = ({
           placeholder="MEN, SHIRT, BLUE SHIRT, 100% COTTON"
         />
       </Box>
-      <CategorySelector
-        onCategoryChange={handleCategoryChange}
-        resetSelector={resetSelector}
-      />
+      <Box p={3}>
+        {openCategorySelector ? (
+          <Box w={"100%"} m={"auto"}>
+            <Text as={"b"}>Previous selected categories</Text>
+            <Breadcrumb
+              w={"100%"}
+              p={5}
+              spacing="20px"
+              separator={<ChevronRightIcon color="gray.500" />}
+              fontSize="20px"
+            >
+              <BreadcrumbItem>
+                <BreadcrumbLink>
+                  {productDetails.categories[0].toLocaleUpperCase()}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
 
+              <BreadcrumbItem>
+                <BreadcrumbLink>
+                  {productDetails.categories[1].toLocaleUpperCase()}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+
+              <BreadcrumbItem>
+                <BreadcrumbLink>
+                  {productDetails.categories[2].toLocaleUpperCase()}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </Breadcrumb>
+            <Button
+              w={"100%"}
+              colorScheme="blue"
+              onClick={() => setOpenCategorySelector(false)}
+            >
+              Change Category
+            </Button>
+          </Box>
+        ) : (
+          <CategorySelector
+            onCategoryChange={handleCategoryChange}
+            resetSelector={resetSelector}
+          />
+        )}
+      </Box>
       <Text as={"b"} fontSize={"lg"}>
         Description :
       </Text>

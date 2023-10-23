@@ -102,11 +102,11 @@ const Checkout = () => {
       ) : (
         <PaymentStatus />
       )}
-      <Flex justifyContent={"space-between"}>
+      <Flex w={"100%"} justifyContent={"space-between"}>
         {activeStep !== 3 && (
           <Button
             minw={"49%"}
-            maxW={"100%"}
+            w={"100%"}
             colorScheme="blue"
             onClick={() =>
               activeStep !== 1
@@ -118,12 +118,7 @@ const Checkout = () => {
           </Button>
         )}
         {activeStep !== 2 && (
-          <Button
-            minw={"49%"}
-            maxW={"100%"}
-            onClick={next}
-            colorScheme="whatsapp"
-          >
+          <Button minw={"49%"} w={"100%"} onClick={next} colorScheme="whatsapp">
             {activeStep === 1
               ? "Use this address"
               : activeStep === 2

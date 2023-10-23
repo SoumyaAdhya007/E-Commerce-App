@@ -11,7 +11,6 @@ import { getOrders } from "../../../../service/api";
 import { useState, useEffect } from "react";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 import EmptyCart from "../../../../../images/empty-cart-page-doodle.png";
-import Navbar from "../../../Navbar/navbar";
 import ProductImage from "../../ProductCategoryPage/productImage";
 const OrderItem = ({
   orderDetails,

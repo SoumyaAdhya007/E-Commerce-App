@@ -9,7 +9,6 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useContext, useState, useMemo } from "react";
-import Navbar from "../../Navbar/navbar";
 import Options from "./options";
 import Price from "../ProductCategoryPage/price";
 import ProductImage from "../ProductCategoryPage/productImage";
@@ -65,7 +64,6 @@ const Cart = () => {
   console.log(cart);
   return (
     <>
-      <Navbar />
       {loading ? (
         <Flex h={"500px"} justifyContent={"center"} alignItems={"center"}>
           <Spinner

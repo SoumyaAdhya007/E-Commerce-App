@@ -11,6 +11,7 @@ import {
   DrawerOverlay,
   useBreakpointValue,
   Button,
+  Box,
 } from "@chakra-ui/react"; // Chakra UI components and hooks
 import { AccountContext } from "../../context/context"; // Account context for user information
 import { Search2Icon } from "@chakra-ui/icons"; // Chakra UI icon
@@ -24,7 +25,6 @@ import { useLocation } from "react-router-dom"; // React Router DOM for location
 const DesktopNav = ({ navItems }) => {
   // User context and state variables
   const { isLogedIn, setIsLogedIn, userDetails } = useContext(AccountContext);
-
   // Drawer state
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -86,7 +86,17 @@ const DesktopNav = ({ navItems }) => {
           {/* Render a link to the cart */}
           {!onSellerPage && (
             <Link to="/cart">
-              <ShoppingBagOutlinedIcon fontSize="large" color="#303030" />
+              <Box mr={3}>
+                <ShoppingBagOutlinedIcon fontSize="large" color="#303030" />
+                {/* {userDetails.cart.length > 0 && (
+                  <Badge
+                    count={userDetails.cart.length}
+                    background="red"
+                    color="white"
+                    position={{ top: "10%", right: "-10%" }}
+                  />
+                )} */}
+              </Box>
             </Link>
           )}
         </Flex>
@@ -95,3 +105,27 @@ const DesktopNav = ({ navItems }) => {
   );
 };
 export default DesktopNav; // Export the DesktopNav component
+const Badge = ({ count }) => {
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-block",
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: "-40px",
+          right: "-11px",
+          background: "#FDD835",
+          color: "#4B4010",
+          padding: "1px 7px",
+          borderRadius: "50%",
+        }}
+      >
+        {count}
+      </span>
+    </span>
+  );
+};

@@ -41,7 +41,7 @@ const UserOptions = () => {
           w={"100%"}
           bg="transparent"
           mt={1}
-          onClick={() => navigate("/seller/product")}
+          onClick={() => navigate("/seller/dashboard")}
         >
           Switch to Seller
         </Button>
@@ -75,7 +75,7 @@ const UserOptions = () => {
 
   return (
     <>
-      <ToastContainer />
+      {/* <ToastContainer /> */}
       {!onSellerPage && (
         <Link to={"/account/myaccount"}>
           <Button w={"100%"} bg="transparent" mt={1}>

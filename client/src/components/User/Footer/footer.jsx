@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import {
   Box,
@@ -11,9 +11,7 @@ import {
   useColorModeValue,
   Image,
 } from "@chakra-ui/react";
-const Logo = (props) => {
-  return <Image width="110px" height="40px" src="../images/logo.png" />;
-};
+import Logo from "../../../../images/logo.png";
 
 const ListHeader = ({ children }) => {
   return (
@@ -119,7 +117,7 @@ const Footer = () => {
             ml: 8,
           }}
         >
-          <Logo />
+          <Image width="110px" height="40px" src={Logo} />
         </Flex>
         <Text pt={6} fontSize={"sm"} textAlign={"center"}>
           THE NEW AGE ONLINE SHOPPING EXPERIENCE
