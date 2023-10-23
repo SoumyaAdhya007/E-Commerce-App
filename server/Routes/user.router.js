@@ -180,6 +180,46 @@ UserRouter.post("/becomeMerchant", async (req, res) => {
     return res.status(500).send({ message: error.message });
   }
 });
+// UserRouter.get("/merchantDashboard", async (req, res) => {
+//   // Extract userID from the request body (already authenticated through middleware)
+//   const userID = req.body.userID;
+//   try {
+//     // Find the user with the provided userID
+//     const user = await UserModel.findOne({ _id: userID });
+
+//     // If the user is not found, return a 401 Unauthorized status with an error message
+//     if (!user) {
+//       return res.status(401).send({ message: "User not found" });
+//     }
+//     if (!user.isSeller) {
+//       res.status(403).send({ message: "You are not a merchant" });
+//     }
+//     const products = await ProductModel.find({sellerId:user._id});
+//     const orders = await OrderModel.find({sellerId:user._id});
+//     let availableProducts;
+//     let unavailableProducts;
+//     if(products.length>0){
+//       availableProducts = products.filter((product)=> product.availability===true)
+//       unavailableProducts = products.filter((product)=> product.availability===false)
+//     }
+//     if(orders.length>0){
+
+//     }
+//     const dashboard = {
+//       totalProducts:products.length,
+//       availableProducts: availableProducts.length||0,
+//       unavailableProducts: unavailableProducts.length||0,
+//       totalOrders:orders.length,
+
+//     }
+//     return res.status(200).send({
+//       message: "You are become a merchant",
+//     });
+//   } catch (error) {
+//     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
+//     return res.status(500).send({ message: error.message });
+//   }
+// });
 // Route for getting user addresses
 UserRouter.get("/address", async (req, res) => {
   // Extract userID from the request body (already authenticated through middleware)

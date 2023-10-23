@@ -448,12 +448,78 @@ ProductRouter.get("/:id", async (req, res) => {
 
 // ProductRouter.patch("/change/:id", ...)
 // Route to update a specific product by its ID
-ProductRouter.patch("/change/:id", async (req, res) => {
+// ProductRouter.patch("/:id", async (req, res) => {
+//   // Extract the product ID from the URL parameter
+//   const id = req.params.id;
+
+//   // Extract the payload (updated product details) from the request body
+//   const product = req.body.product;
+//   const newImages = req.body.newImages;
+//   console.log(newImages, product);
+//   try {
+//     // Find the product with the provided ID
+//     const product = await ProductModel.findOne({ _id: id });
+
+//     // If the product is not found, return a 404 Not Found status with an error message
+//     if (!product) {
+//       return res.status(404).send({ message: "Product not found" });
+//     }
+
+//     // // If the payload contains categoryId, check if the category exists
+//     // if (payload.categoryId) {
+//     //   const findCategory = await CategorytModel.findOne({
+//     //     _id: payload.categoryId,
+//     //   });
+
+//     //   // If the category is not found, return a 404 Not Found status with an error message
+//     //   if (!findCategory) {
+//     //     return res.status(404).send({ message: "Category not found" });
+//     //   }
+//     // }
+//     if (newImages.length > 0) {
+//       for (const image of newImages) {
+//         try {
+//           const result = await cloudinary.uploader.upload(image, {
+//             upload_preset: "e-commerce_preset",
+//           });
+//           const uploadRes = {
+//             asset_id: result.asset_id,
+//             public_id: result.public_id,
+//             url: result.url,
+//           };
+//           await ProductModel.updateOne(
+//             { _id: id },
+//             {
+//               $push: { images: uploadRes },
+//             }
+//           );
+//         } catch (error) {
+//           console.error(
+//             "Error uploading image to Cloudinary:",
+//             res.status(404).send({ error: error.message })
+//           );
+//           // Handle the error as needed, e.g., log it or send an error response
+//         }
+//       }
+//     }
+
+//     // Update the product with the provided payload
+//     await ProductModel.findByIdAndUpdate({ _id: id }, product);
+
+//     // Return a success message with a 200 OK status
+//     res.status(200).send({ message: "Product updated successfully" });
+//   } catch (error) {
+//     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
+//     res.status(500).send({ message: error.message });
+//   }
+// });
+ProductRouter.patch("/:id", async (req, res) => {
   // Extract the product ID from the URL parameter
   const id = req.params.id;
 
   // Extract the payload (updated product details) from the request body
-  const payload = req.body;
+  const productUpdates = req.body.product;
+  const newImages = req.body.newImages;
 
   try {
     // Find the product with the provided ID
@@ -463,24 +529,85 @@ ProductRouter.patch("/change/:id", async (req, res) => {
     if (!product) {
       return res.status(404).send({ message: "Product not found" });
     }
+    // Update the product with the combined productUpdates object
+    await ProductModel.findByIdAndUpdate({ _id: id }, productUpdates);
 
-    // If the payload contains categoryId, check if the category exists
-    if (payload.categoryId) {
-      const findCategory = await CategorytModel.findOne({
-        _id: payload.categoryId,
-      });
+    if (newImages && newImages.length > 0) {
+      // Array to store uploaded image details
+      // const uploadedImages = [];
 
-      // If the category is not found, return a 404 Not Found status with an error message
-      if (!findCategory) {
-        return res.status(404).send({ message: "Category not found" });
+      for (const image of newImages) {
+        try {
+          const result = await cloudinary.uploader.upload(image, {
+            upload_preset: "e-commerce_preset",
+          });
+          const uploadRes = {
+            asset_id: result.asset_id,
+            public_id: result.public_id,
+            url: result.url,
+          };
+          await ProductModel.updateOne(
+            { _id: id },
+            {
+              $push: { images: uploadRes },
+            }
+          );
+          // uploadedImages.push(uploadRes);
+        } catch (error) {
+          console.error("Error uploading image to Cloudinary:", error.message);
+          // Handle the error as needed, e.g., log it or send an error response
+        }
       }
-    }
 
-    // Update the product with the provided payload
-    await ProductModel.findByIdAndUpdate({ _id: id }, payload);
+      //   // Push the uploaded images into the productUpdates object
+      //   // productUpdates.images = uploadedImages;
+    }
+    // if (productUpdates.images) {
+    //   delete productUpdates.images;
+    // }
 
     // Return a success message with a 200 OK status
     res.status(200).send({ message: "Product updated successfully" });
+  } catch (error) {
+    // If any error occurs during processing, return a 500 Internal Server Error status with an error message
+    res.status(500).send({ message: error.message });
+  }
+});
+
+ProductRouter.delete("/image/:id", Authentication, async (req, res) => {
+  // Extract the product ID from the URL parameter
+  const productId = req.params.id;
+  const { userID, image } = req.body;
+
+  try {
+    const user = await UserModel.findOne({ _id: userID });
+    // Find the product with the provided ID
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    if (!user.isSeller) {
+      return res
+        .status(404)
+        .send({ message: "You do not have permission to delete product" });
+    }
+    // Find the product with the provided ID
+    const product = await ProductModel.findOne({ _id: productId });
+
+    // If the product is not found, return a 404 Not Found status with an error message
+    if (!product) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+    await cloudinary.uploader.destroy(image.public_id);
+
+    await ProductModel.updateOne(
+      { _id: productId },
+      {
+        $pull: { images: { _id: image._id } },
+      }
+    );
+
+    // Return a success message with a 200 OK status
+    res.status(200).send({ message: "Product image removed successfully" });
   } catch (error) {
     // If any error occurs during processing, return a 500 Internal Server Error status with an error message
     res.status(500).send({ message: error.message });
@@ -548,6 +675,18 @@ ProductRouter.delete("/:id", Authentication, async (req, res) => {
       // If the product is not found, return a 404 Not Found status with an error message
       if (!product) {
         return res.status(404).send({ message: "Product not found" });
+      }
+      const images = product.images;
+      for (const image of images) {
+        try {
+          await cloudinary.uploader.destroy(image.public_id);
+        } catch (error) {
+          console.error(
+            "Error uploading image to Cloudinary:",
+            res.status(404).send({ error: error.message })
+          );
+          // Handle the error as needed, e.g., log it or send an error response
+        }
       }
       // Delete the product from the database
       await ProductModel.findByIdAndDelete({ _id: id });
