@@ -336,6 +336,70 @@ OrdersRouter.post("/", async (req, res) => {
     const orders = [];
 
     // Process each item in the user's cart
+    // for (const cartItem of user.cart) {
+    //   const product = await ProductModel.findOne(cartItem.productId);
+
+    //   // Check if the product exists
+    //   if (!product) {
+    //     return res.status(404).send({
+    //       message:
+    //         "Product not found. This could be because the product has been deleted or is no longer available.",
+    //     });
+    //   }
+    //   // Find the size in the product's sizes array
+    //   const sizeIndex = product.sizes.findIndex(
+    //     (elem) => elem.size === cartItem.size
+    //   );
+
+    //   // Check if the size exists in the product
+    //   if (
+    //     sizeIndex === -1 ||
+    //     product.sizes[sizeIndex].quantity < cartItem.quantity
+    //   ) {
+    //     return res.status(400).send({
+    //       message:
+    //         "Invalid cart item. The selected size or quantity is not available.",
+    //     });
+    //   }
+
+    //   // Calculate the updated quantity after deducting
+    //   const updatedQuantity =
+    //     product.sizes[sizeIndex].quantity - cartItem.quantity;
+
+    //   // Check if the updated quantity is less than 0
+    //   if (updatedQuantity < 0) {
+    //     return res.status(400).send({
+    //       message:
+    //         "Invalid cart item. The selected quantity exceeds the available stock.",
+    //     });
+    //   }
+
+    //   // Update the product's quantity
+    //   product.sizes[sizeIndex].quantity = updatedQuantity;
+
+    //   const amount =
+    //     Math.ceil(product.price - (product.discount / 100) * product.price) *
+    //     cartItem.quantity;
+    //   const merchantReceive = Math.ceil(amount - (10 / 100) * amount);
+    //   await product.save();
+    //   const order = new OrderModel({
+    //     userID: user._id,
+    //     sellerId: product.sellerId,
+    //     productId: product._id,
+    //     size: cartItem.size,
+    //     quantity: cartItem.quantity,
+    //     address: selectedAddress,
+    //     orderDate: date,
+    //     paymentDetails: {
+    //       paymentId,
+    //       amount: amount,
+    //       merchantReceive: merchantReceive,
+    //       status: "PAID",
+    //     },
+    //   });
+
+    //   orders.push(order);
+    // }
     for (const cartItem of user.cart) {
       const product = await ProductModel.findOne(cartItem.productId);
 
@@ -346,6 +410,7 @@ OrdersRouter.post("/", async (req, res) => {
             "Product not found. This could be because the product has been deleted or is no longer available.",
         });
       }
+
       // Find the size in the product's sizes array
       const sizeIndex = product.sizes.findIndex(
         (elem) => elem.size === cartItem.size
@@ -376,11 +441,21 @@ OrdersRouter.post("/", async (req, res) => {
 
       // Update the product's quantity
       product.sizes[sizeIndex].quantity = updatedQuantity;
+
+      // Check if all sizes have zero quantity and set availability accordingly
+      const allSizesZero = product.sizes.every((size) => size.quantity === 0);
+      if (allSizesZero) {
+        product.availability = false;
+      }
+
       const amount =
         Math.ceil(product.price - (product.discount / 100) * product.price) *
         cartItem.quantity;
       const merchantReceive = Math.ceil(amount - (10 / 100) * amount);
+
+      // Save the product with updated quantity and availability
       await product.save();
+
       const order = new OrderModel({
         userID: user._id,
         sellerId: product.sellerId,
